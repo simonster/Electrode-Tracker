@@ -1,0 +1,134 @@
+<html>
+<head>
+    <title>Electrode Tracker</title>
+    <link href="font.css" rel="stylesheet" type="text/css" media="all">
+    <link href="pure.css" rel="stylesheet" type="text/css" media="all">
+    <link href="tracker.css" rel="stylesheet" type="text/css" media="all">
+</head>
+<body>
+    <div id="pos-container">
+        <div id="pos-ltick-labels" class="tick-labels"></div>
+        <div id="pos">
+            <div id="curpos"></div>
+        </div>
+        <div id="pos-rtick-labels" class="tick-labels"></div>
+    </div>
+    <div id="grid-container-container">
+        <div id="grid-selector-container">
+            <form id="grid-selector-form" class="pure-form">
+                <select id="grid-selector" onchange="select_grid()"></select>
+            </form>
+        </div>
+        <div id="grid-container">
+            <div id="anterior-label" class="grid-label">A</div>
+            <div id="posterior-label" class="grid-label">P</div>
+            <div id="left-label" class="grid-label">L</div>
+            <div id="right-label" class="grid-label">R</div>
+            <div id="grid"></div>
+        </div>
+    </div>
+    <div id="controls">
+        <div class="pure-menu pure-menu-open pure-menu-horizontal">
+            <ul id="controls-menu">
+                <li mode="electrode" class="pure-menu-selected" onclick="set_control_mode(this, event)">
+                    <a>Screw</a>
+                </li>
+                <li mode="history" onclick="set_control_mode(this, event)">
+                    <a>History</a>
+                </li>
+                <li mode="setup" onclick="set_control_mode(this, event)">
+                    <a>Setup</a>
+                </li>
+            </ul>
+        </div>
+        <div id="controls-electrode" class="controls" selected="1">
+            <form id="controls-electrode-container" class="pure-form">
+                <div id="electrode-advance">
+                    <a class="pure-button advance-button" onclick="advance(1)" disabled="1">
+                        Advance 1 Turn
+                    </a>
+                    <a class="pure-button advance-button" onclick="advance(this.getElementsByClassName('electrode-nturns')[0].value)" disabled="1">
+                        Advance <input class="electrode-nturns" type="number" onclick="event.stopPropagation()" onchange="update_advance_buttons()" value="3"> Turns
+                    </a>
+                    <a class="pure-button advance-button" onclick="advance(this.getElementsByClassName('electrode-nturns')[0].value)" disabled="1">
+                        Advance <input class="electrode-nturns" type="number" onclick="event.stopPropagation()" onchange="update_advance_buttons()" value="10"> Turns
+                    </a>
+                </div>
+                <div id="electrode-retract">
+                    <a class="pure-button retract-button" onclick="advance(-1)" disabled="1">
+                        Retract 1 Turn
+                    </a>
+                    <a class="pure-button retract-button" onclick="advance(-this.getElementsByClassName('electrode-nturns')[0].value)" disabled="1">
+                        Retract <input class="electrode-nturns" type="number" onclick="event.stopPropagation()" onchange="update_advance_buttons()" value="3"> Turns
+                    </a>
+                    <a class="pure-button retract-button" onclick="advance(-this.getElementsByClassName('electrode-nturns')[0].value)" disabled="1">
+                        Retract <input class="electrode-nturns" type="number" onclick="event.stopPropagation()" onchange="update_advance_buttons()" value="10"> Turns
+                    </a>
+                </div>
+                <div id="electrode-status" class="pure-menu pure-menu-open">
+                    <ul id="electrode-status-ul"></ul>
+                </div>
+                <div id="note-container">
+                    <textarea id="note"></textarea>
+                    <a id="add-note" class="pure-button" disabled="1" onclick="add_note()">Add Note</a>
+                </div>
+            </form>
+        </div>
+        <div id="controls-history" class="controls">
+            <div id="history-table-container">
+                <table id="history-table" class="pure-table">
+                    <thead>
+                        <tr>
+                            <td style="min-width: 5.5em">Time</td>
+                            <td style="width: 100%">Action</td>
+                            <td style="min-width: 3em">Status</td>
+                        </tr>
+                    </thead>
+                    <tbody id="history-body"></tbody>
+                </table>
+            </div>
+            <div id="history-buttons">
+                <a id="undo-button" class="pure-button" onclick="undo(); event.stopPropagation()" disabled="1">Undo</a>
+                <a id="redo-button" class="pure-button" onclick="redo(); event.stopPropagation()" disabled="1">Redo</a>
+                <a class="pure-button" onclick="save_history(); event.stopPropagation()">Save</a>
+            </div>
+        </div>
+        <div id="controls-setup" class="controls">
+            <div id="setup-buttons">
+                <a class="pure-button" onclick="load_history()">Load</a>
+                <a class="pure-button" onclick="reset_history()">Reset</a>
+                <a class="pure-button" onclick="clear_grid()">Clear</a>
+                <input type="file" id="hidden-load-input" style="display:none" onchange="load_history_file(this.files[0])">
+            </div>
+            <form id="new-grid-form" class="pure-form pure-form-aligned" onsubmit="return false">
+                <div id="add-buttons">
+                    <a class="pure-button" onclick="new_grid()">New Grid</a>
+                    <a id="delete-grid" class="pure-button" onclick="delete_grid()">Delete Grid</a>
+            </form>
+            <form id="rotation-form" class="pure-form pure-form-aligned" onsubmit="return false">
+                <fieldset>
+                    <div class="pure-control-group">
+                        <label for="gridname">Grid Name</label>
+                        <input id="gridname" type="text" value="0" oninput="grid_name_change(this.value)">
+                    </div>
+                    <div class="pure-control-group">
+                        <label for="rotation">Rotation</label>
+                        <input id="rotation" type="number" value="0" onchange="rotation_change(this.value)">
+                        <div id="rotation-slider-container">
+                            <input id="rotation-slider" type="range" oninput="rotation_change(this.value)" min="-180" max="180" value="0">
+                        </div>
+                    </div>
+                </fieldset>
+            </form>
+            <div id="color" disabled="1">
+                <span id="color-disabled" class="color-button" onclick="select_color(this)">
+                    <div id="color-disabled-text">X</div>
+                </span>
+            </div>
+        </div>
+    </div>
+    <script src="FileSaver.js"></script>
+    <script src="tinycolor.js"></script>
+    <script src="tracker.js"></script>
+</body>
+</html>

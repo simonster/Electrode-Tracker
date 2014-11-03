@@ -1,0 +1,384 @@
+body {
+    padding: 0.7em;
+}
+
+#pos-container {
+    float: left;
+    width: 10%;
+    height: 100%;
+}
+
+.tick-labels {
+    position: relative;
+    float: left;
+    height: 100%;
+    width: 1em;
+}
+
+.tick-labels > div.tick-label {
+    position: absolute;
+    font-size: 0.8em;
+    width: 100%;
+    -webkit-transform: translateY(-0.5em);
+    transform: translateY(-0.5em);
+}
+
+#pos-ltick-labels > div.tick-label {
+    text-align: right;
+}
+
+#pos-rtick-labels > div.tick-label {
+    text-align: left;
+}
+
+#pos {
+    float: left;
+    position: relative;
+    width: 10px;
+    border: 1px solid black;
+    height: 100%;
+    margin-left: 2px;
+    margin-right: 2px;
+    overflow: hidden;
+    background-color: #666;
+}
+
+#pos > div.ltick, #pos > div.rtick {
+    position: absolute;
+    width: 2px;
+    height: 1px;
+    background-color: white;
+    -webkit-transform: translateY(-50%);
+    transform: translateY(-50%);
+}
+
+#pos > div.rtick {
+    right: 0;
+}
+
+#curpos {
+    position: absolute;
+    width: 100%;
+    z-index: 2;
+    height: 2px;
+    background-color: black;
+    -webkit-transform: translateY(-50%);
+    transform: translateY(-50%);
+}
+
+#pos > div.turn {
+    position: absolute;
+    background-color: black;
+    left: 1px;
+    right: 1px;
+    padding: 1px 0;
+    background-clip: content-box;
+    box-sizing: border-box;
+    z-index: 1;
+}
+
+#grid-container-container {
+    float: left;
+    width: 60%;
+    overflow: hidden;
+    padding-right: 4px;
+}
+
+#grid-selector-container {
+    text-align: center;
+    padding-bottom: 6px;
+}
+
+#grid-container {
+    position: relative;
+}
+
+.grid-label {
+    position: absolute;
+    font-size: 36pt;
+    text-align: center;
+}
+
+#anterior-label {
+    left: 0;
+    right: 0;
+}
+
+#posterior-label {
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+#left-label {
+    left: 4px;
+    top: 50%;
+    -webkit-transform: translateY(-50%);
+    transform: translateY(-50%);
+}
+
+#right-label {
+    right: 4px;
+    top: 50%;
+    -webkit-transform: translateY(-50%);
+    transform: translateY(-50%);
+}
+
+#grid {
+    position: relative;
+    width: 100%;
+    height: 0;
+    padding-bottom: 100%;
+    border-radius: 50%;
+    border: 2px solid black;
+}
+
+.screw {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid black;
+    box-sizing: border-box;
+}
+
+.electrode {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid black;
+    box-sizing: border-box;
+}
+
+.screw[selected], .electrode[selected] {
+    border: 3px solid violet !important;
+}
+
+#grid .skeleton {
+    display: none;
+    border-color: #ccc;
+}
+
+#grid[setup] .skeleton {
+    display: block;
+}
+
+.electrode.skeleton > .electrode-text, .screw.skeleton > .screw-text {
+    display: none;
+}
+
+.electrode-text, .screw-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    text-align: center;
+    -webkit-transform: translateX(-50%) translateY(-50%);
+    transform: translateX(-50%) translateY(-50%);
+}
+
+.screw-position-text {
+    font-size: 0.6em;
+    white-space: nowrap;
+}
+
+.electrode > input {
+    position: absolute;
+    width: 3em;
+    background: rgba(0, 0, 0, 0);
+    border: none;
+    top: 50%;
+    left: 50%;
+    text-align: center;
+    font-family: "proxima-nova", sans-serif;
+    -webkit-transform: translateX(-50%) translateY(-50%);
+    transform: translateX(-50%) translateY(-50%);
+}
+
+#controls {
+    width: 28%;
+    float: right;
+    height: 100%;
+    text-align: center;
+
+    display: -webkit-flex;
+    -webkit-flex-direction: column;
+    display: flex;
+    flex-direction: column;
+}
+
+#controls-menu li a {
+    padding: 5px 10px;
+}
+
+#controls-menu {
+    margin-bottom: 6px;
+}
+
+.controls {
+    -webkit-flex: 1;
+    flex: 1;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    display: none;
+}
+
+.controls[selected] {
+    display: -webkit-flex;
+    display: flex;
+}
+
+a.pure-button {
+    min-height: 2em;
+    border-radius: 10px;
+    line-height: 2em;
+}
+
+#controls-electrode-container a.pure-button {
+    margin-top: 0.2em;
+    vertical-align: middle;
+    display: block;
+}
+
+.electrode-nturns {
+    width: 3.5em;
+    height: 2em;
+}
+
+#electrode-advance a.pure-button {
+    background-color: rgb(28, 184, 65);
+    color: white;
+}
+
+#electrode-retract {
+    margin-top: 12px;
+}
+
+#electrode-retract a.pure-button {
+    background-color: rgb(202, 60, 60);
+    color: white;
+}
+
+#electrode-status {
+    margin-top: 12px;
+    text-align: left;
+}
+
+#electrode-status a.electrode-status {
+    opacity: 0.5;
+    color: black;
+}
+
+#electrode-status a.electrode-status[selected] {
+    opacity: 1;
+}
+
+#note {
+    margin-top: 12px;
+    width: 100%;
+    height: 8em;
+}
+
+#history-table-container {
+    -webkit-flex: 1;
+    flex: 1;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    overflow: auto;
+}
+
+#history-table {
+    font-size: 9pt;
+    width: 100%;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+#history-table td {
+    padding: 0.5em;
+}
+
+#history-table tr[selected] {
+    background-color: violet;
+}
+
+#history-buttons {
+    width: 100%;
+    margin-top: 6px;
+    margin-bottom: 6px;
+    text-align: center;
+}
+
+#new-grid-form {
+    padding-top: 6pt;
+}
+
+#new-grid {
+    position: relative;
+    top: 5px;
+    min-height: auto;
+    border-radius: 10px;
+    line-height: 0.8em;
+    box-sizing: border-box;
+    padding: 0.2em 0.3em;
+    font-size: 2em;
+}
+
+#rotation-form {
+    margin: 0 auto;
+    width: 16em;
+    margin-top: 6pt;
+    text-align: left;
+}
+
+#rotation-form label {
+    width: 6em;
+    text-align: right;
+}
+
+#gridname {
+    width: 8em;
+}
+
+#rotation {
+    width: 4em;
+}
+
+#rotation-slider-container {
+    text-align: center;
+}
+
+.color-button {
+    display: inline-block;
+    background-clip: content-box;
+    padding: 1px;
+    margin: 0 2px;
+    width: 36px;
+    height: 36px;
+    border: 1px solid white;
+}
+
+.color-button[selected] {
+    border: 1px solid black;
+}
+
+#color[disabled] > .color-button {
+    opacity: 0.5;
+}
+
+#color-disabled {
+    position: relative;
+}
+
+#color-disabled-text {
+    position: absolute;
+    font-size: 48px;
+    line-height: 1em;
+    top: 50%;
+    left: 50%;
+    -webkit-transform: translateX(-50%) translateY(-23px);
+    transform: translateX(-50%) translateY(-23px);
+}
+
+.pure-form-aligned .pure-control-group label {
+    width: 5em;
+}
