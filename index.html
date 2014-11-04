@@ -1,7 +1,6 @@
 <html>
 <head>
     <title>Electrode Tracker</title>
-    <link href="font.css" rel="stylesheet" type="text/css" media="all">
     <link href="pure.css" rel="stylesheet" type="text/css" media="all">
     <link href="tracker.css" rel="stylesheet" type="text/css" media="all">
 </head>
@@ -91,6 +90,7 @@
                 <a id="undo-button" class="pure-button" onclick="undo(); event.stopPropagation()" disabled="1">Undo</a>
                 <a id="redo-button" class="pure-button" onclick="redo(); event.stopPropagation()" disabled="1">Redo</a>
                 <a class="pure-button" onclick="save_history(); event.stopPropagation()">Save</a>
+                <a class="pure-button" onclick="save_image(); event.stopPropagation()">Image</a>
             </div>
         </div>
         <div id="controls-setup" class="controls">
@@ -127,6 +127,7 @@
             </div>
         </div>
     </div>
+    <canvas id="save-canvas" width="1024" height="1024"></canvas>
     <script src="FileSaver.js"></script>
     <script src="tinycolor.js"></script>
     <script src="tracker.js"></script>

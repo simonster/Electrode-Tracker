@@ -82,14 +82,6 @@ function grid_template() {
     return g1;
 }
 
-function new_redo_stack(name) {
-    var grid_screw_redo_stack = [];
-    for (var i = 0; i < grids[name].electrodes.pairs.length; i++) {
-        grid_screw_redo_stack.push([]);
-    }
-    redo_stacks[name] = grid_screw_redo_stack;
-}
-
 if ("grids" in localStorage) {
     var grids = JSON.parse(localStorage["grids"]);
 } else {
@@ -101,8 +93,19 @@ var current_screw_position = 0;
 
 // Stack of old screw_history for redo for each screw
 var redo_stacks = {};
-for (var grid in grids) {
-    new_redo_stack(grid);
+
+function new_redo_stack(name) {
+    var grid_screw_redo_stack = [];
+    for (var i = 0; i < grids[name].electrodes.pairs.length; i++) {
+        grid_screw_redo_stack.push([]);
+    }
+    redo_stacks[name] = grid_screw_redo_stack;
+}
+
+function init_redo_stacks() {
+    for (var grid in grids) {
+        new_redo_stack(grid);
+    }
 }
 
 function RedoStackEntry(indices, recs) {
@@ -162,14 +165,16 @@ function draw_status_td(statustd, status) {
 }
 
 // Draw color for a specific position (in turns)
-function draw_turn_status(pos, status, explicit) {
+function draw_turn_status(pos, status, hit) {
+    if (pos < 0) return;
+
     var turn = document.getElementById("turn-"+pos);
     
     // Don't overwrite explicit information
-    if (turn.style.opacity == 1 && !explicit) return;
+    if (turn.getAttribute("state") === "hit" && !hit) return;
 
     turn.style.backgroundColor = ELECTRODE_STATUS[status].color;
-    turn.style.opacity = 1; //explicit ? "1" : "0.5";
+    turn.setAttribute("state", hit ? "hit" : "skipped");
 }
 
 // Draw screw text based on current position and status
@@ -216,14 +221,14 @@ function draw_action(at) {
         actiontd.textContent = (rec.nturns < 0 ? "Retracted " : "Advanced ") + Math.abs(rec.nturns)+ " turn" + 
                                (Math.abs(rec.nturns) != 1 ? "s" : "");
 
-        var last = Math.max(0, Math.round(current_screw_position+rec.nturns)-1);
+        var last = Math.max(0, Math.round(current_screw_position+rec.nturns-1));
         var oldstatus = get_electrode_status(at-1);
         if (rec.nturns < 0) {
-            for (var i = Math.ceil(current_screw_position); i > last; i--) {
+            for (var i = Math.round(current_screw_position-1); i > last; i--) {
                 draw_turn_status(i, oldstatus, false);
             }
         } else {
-            for (var i = Math.ceil(current_screw_position); i < last; i++) {
+            for (var i = Math.round(current_screw_position); i < last; i++) {
                 draw_turn_status(i, oldstatus, false);
             }
         }
@@ -233,7 +238,7 @@ function draw_action(at) {
         draw_current_position();
     } else if (rec.action == "status") {
         actiontd.textContent = "Set status";
-        draw_turn_status(current_screw_position, rec.status, true);
+        draw_turn_status(current_screw_position-1, rec.status, true);
     } else if (rec.action == "note") {
         actiontd.textContent = "Note: "+rec.note;
     }
@@ -261,7 +266,7 @@ function redraw_pair_info() {
     current_screw_position = 0;
     var turns = document.querySelectorAll(".turn");
     for (var i = 0; i < turns.length; i++) {
-        turns[i].style.opacity = 0;
+        turns[i].setAttribute("state", "hidden");
     }
 
     // Draw history
@@ -326,7 +331,7 @@ function init_pos() {
         turn.id = "turn-"+i;
         turn.style.top = i/MAX_TURNS*100+"%";
         turn.style.height = 100/MAX_TURNS+"%";
-        turn.style.opacity = 0;
+        turn.setAttribute("state", "hidden");
         document.getElementById("pos").appendChild(turn);
         turns.push(turn);
     }
@@ -656,7 +661,7 @@ function set_electrode_status() {
     } else {
         pair_history[pair_history.length-1].status = newstatus;
         draw_status_td(document.getElementById("history-body").lastChild.lastChild, newstatus);
-        draw_turn_status(current_screw_position, newstatus, true);
+        draw_turn_status(current_screw_position-1, newstatus, true);
         save_local();
     }
     draw_screw_text(pair);
@@ -780,6 +785,54 @@ function save_history() {
     saveAs(blob, "tracker.json");
 }
 
+function get_tracker_stylesheet(callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "tracker.css", true);
+    xhr.responseType = "text";
+
+    xhr.onload = function(e) {
+        callback(this.response);
+    };
+
+    xhr.send();
+}
+
+function save_image() {
+    get_tracker_stylesheet(function (stylesheet) {
+        var canvas = document.getElementById("save-canvas");
+        var ctx = canvas.getContext('2d');
+        var data = '\
+            <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024">\
+                <style type="text/css">'+stylesheet+'</style>\
+                <foreignObject width="100%" height="100%">\
+                    <div style="margin: 0 4px 4px 0" xmlns="http://www.w3.org/1999/xhtml" >\
+                        <div id="grid-container">\
+                            '+document.getElementById("grid-container").innerHTML+'\
+                        </div>\
+                    </div>\
+                </foreignObject>\
+            </svg>\
+        ';
+
+        // Trick from https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Drawing_DOM_objects_into_a_canvas
+        var DOMURL = window.URL || window.webkitURL || window;
+
+        var img = new Image();
+        var svg = new Blob([data], {type: 'image/svg+xml;charset=utf-8'});
+        var url = DOMURL.createObjectURL(svg);
+
+        img.onload = function () {
+          ctx.drawImage(img, 0, 0);
+          DOMURL.revokeObjectURL(url);
+          canvas.toBlob(function (blob) {
+            saveAs(blob, "grid.png");
+          });
+        }
+
+        img.src = url;
+    });
+}
+
 function update_history_buttons() {
     var can_undo = false, can_redo = false, pair;
     if ((pair = get_current_pair())) {
@@ -800,6 +853,8 @@ function load_history_file(file) {
     var reader = new FileReader();
     reader.onload = function (event) {
         grids = JSON.parse(event.target.result);
+
+        init_redo_stacks();
         init_grids();
         redraw_pair_info();
         save_local();
@@ -1002,6 +1057,7 @@ document.addEventListener("click", function () {
 
 // Not sure why the attribute won't work
 set_disabled(document.getElementById("note"), true);
+init_redo_stacks();
 init_pos();
 init_grids();
 init_electrode_status();
