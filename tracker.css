@@ -201,7 +201,7 @@ body, #grid-container {
 
 .electrode > input {
     position: absolute;
-    width: 3em;
+    width: 1.5em;
     background: rgba(0, 0, 0, 0);
     border: none;
     top: 50%;
