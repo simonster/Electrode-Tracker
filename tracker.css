@@ -100,7 +100,7 @@ body, #grid-container {
 
 #grid-container-container {
     float: left;
-    width: 60%;
+    width: 55%;
     overflow: hidden;
     padding-right: 4px;
 }
