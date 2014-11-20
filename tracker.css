@@ -20,7 +20,7 @@ body, #grid-container {
 
 #pos-container {
     float: left;
-    width: 10%;
+    width: 75px;
     height: 100%;
 }
 
@@ -109,7 +109,7 @@ body, #grid-container {
 
 #grid-container-container {
     float: left;
-    width: 55%;
+    width: 63%;
     overflow: hidden;
 }
 
