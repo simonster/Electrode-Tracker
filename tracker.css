@@ -14,6 +14,10 @@ body, #grid-container {
     background-color: white;
 }
 
+#grid-container {
+	background-size: 100%;
+}
+
 #pos-container {
     float: left;
     width: 10%;
@@ -98,16 +102,15 @@ body, #grid-container {
     background-size: 4px 4px;
 }
 
+#grid-selector-container {
+    text-align: center;
+    padding-bottom: 6px;
+}
+
 #grid-container-container {
     float: left;
     width: 55%;
     overflow: hidden;
-    padding-right: 4px;
-}
-
-#grid-selector-container {
-    text-align: center;
-    padding-bottom: 6px;
 }
 
 #grid-container {
@@ -118,6 +121,7 @@ body, #grid-container {
     position: absolute;
     font-size: 36pt;
     text-align: center;
+    z-index: 2;
 }
 
 #anterior-label {
@@ -151,7 +155,16 @@ body, #grid-container {
     height: 0;
     padding-bottom: 100%;
     border-radius: 50%;
+}
+
+#grid-border {
     border: 2px solid black;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    position: absolute;
+    border-radius: 50%;
 }
 
 .screw {
@@ -194,9 +207,15 @@ body, #grid-container {
     transform: translateX(-50%) translateY(-50%);
 }
 
+.screw-text {
+	font-size: 1.2vw;
+	line-height: 1.05em;
+}
+
 .screw-position-text {
-    font-size: 0.6em;
-    white-space: nowrap;
+    font-size: 0.9vw;
+	line-height: 1.1em;
+    white-space: pre;
 }
 
 .electrode > input {
@@ -356,6 +375,10 @@ a.pure-button {
     text-align: right;
 }
 
+#rotation-form-fieldset {
+	padding-bottom: 0.35em;
+}
+
 #gridname {
     width: 8em;
 }
@@ -365,6 +388,7 @@ a.pure-button {
 }
 
 #rotation-slider-container {
+	margin-top: 6px;
     text-align: center;
 }
 
@@ -380,6 +404,10 @@ a.pure-button {
 
 .color-button[selected] {
     border: 1px solid black;
+}
+
+#color {
+	margin-top: 12px;
 }
 
 #color[disabled] > .color-button {

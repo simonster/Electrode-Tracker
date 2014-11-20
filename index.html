@@ -92,16 +92,16 @@
             <div id="history-buttons">
                 <a id="undo-button" class="pure-button" onclick="undo(); event.stopPropagation()" disabled="1">Undo</a>
                 <a id="redo-button" class="pure-button" onclick="redo(); event.stopPropagation()" disabled="1">Redo</a>
-                <a class="pure-button" onclick="save_history(); event.stopPropagation()">Save</a>
+                <a class="pure-button" onclick="save(); event.stopPropagation()">Save</a>
                 <a class="pure-button" onclick="save_image(); event.stopPropagation()">Image</a>
             </div>
         </div>
         <div id="controls-setup" class="controls">
             <div id="setup-buttons">
-                <a class="pure-button" onclick="load_history()">Load</a>
+                <a class="pure-button" onclick="load()">Load</a>
                 <a class="pure-button" onclick="reset_history()">Reset</a>
                 <a class="pure-button" onclick="clear_grid()">Clear</a>
-                <input type="file" id="hidden-load-input" style="display:none" onchange="load_history_file(this.files[0])">
+                <input type="file" id="hidden-load-input" style="display:none" onchange="load_file(this.files[0])">
             </div>
             <form id="new-grid-form" class="pure-form pure-form-aligned" onsubmit="return false">
                 <div id="add-buttons">
@@ -109,7 +109,7 @@
                     <a id="delete-grid" class="pure-button" onclick="delete_grid()">Delete Grid</a>
             </form>
             <form id="rotation-form" class="pure-form pure-form-aligned" onsubmit="return false">
-                <fieldset>
+                <fieldset id="rotation-form-fieldset">
                     <div class="pure-control-group">
                         <label for="gridname">Grid Name</label>
                         <input id="gridname" type="text" value="0" oninput="grid_name_change(this.value)">
@@ -123,6 +123,8 @@
                     </div>
                 </fieldset>
             </form>
+            <a class="pure-button" onclick="set_background()">Set Background</a>
+            <input type="file" id="hidden-background-input" style="display:none" onchange="load_background(this.files[0])">
             <div id="color" disabled="1">
                 <span id="color-disabled" class="color-button" onclick="select_color(this)">
                     <div id="color-disabled-text">X</div>

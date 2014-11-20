@@ -73,12 +73,8 @@ function grid_template() {
             ],
             "colors":[],
             "numbers":[]
-        },
-        "history":[]
+        }
     };
-    for (var i = 0; i < g1.electrodes.pairs.length; i++) {
-        g1.history[i] = [];
-    }
     return g1;
 }
 
@@ -86,6 +82,23 @@ if ("grids" in localStorage) {
     var grids = JSON.parse(localStorage["grids"]);
 } else {
     var grids = {"Untitled Grid":grid_template()};
+}
+
+function new_history(pairs) {
+    var history = [];
+    for (var i = 0; i < pairs.length; i++) {
+        history[i] = [];
+    }
+    return history;
+}
+
+if ("histories" in localStorage) {
+    var histories = JSON.parse(localStorage["histories"]);
+} else {
+    var histories = {};
+    for (var gridname in grids) {
+        histories[gridname] = new_history(grids[gridname].electrodes.pairs);
+    }
 }
 
 // Position of the current screw
@@ -181,7 +194,7 @@ function draw_turn_status(pos, status, hit) {
 function draw_screw_text(pair) {
     var position_text = document.querySelector(".screw[pair='"+pair+"'] > .screw-text > .screw-position-text");
     var status_text = document.querySelector(".screw[pair='"+pair+"'] > .screw-text > .screw-status-text");
-    var pair_history = get_current_grid().history[pair];
+    var pair_history = get_current_history()[pair];
     if (!pair_history) position_text.textContent = status_text.textContent = "";
 
     // Compute current position and last status
@@ -190,7 +203,7 @@ function draw_screw_text(pair) {
         if (pair_history[i].nturns) position += pair_history[i].nturns;
         if (pair_history[i].status) status = pair_history[i].status;
     }
-    position_text.textContent = position+" ("+Math.round(MM_PER_TURN*position*10)/10+" mm)";
+    position_text.textContent = position+" \u27f3\n"+Math.round(MM_PER_TURN*position*10)/10+" mm";
     status_text.textContent = ELECTRODE_STATUS[status].shortlabel;
 }
 
@@ -210,7 +223,7 @@ function draw_current_position() {
 // Append a history row to the table in the document. Also update position info
 function draw_action(at) {
     var pair = get_current_pair();
-    var pair_history = get_current_grid().history[pair];
+    var pair_history = get_current_history()[pair];
     var rec = pair_history[at];
     var tr = document.createElement("tr");
     var timetd = document.createElement("td");
@@ -273,7 +286,7 @@ function redraw_pair_info() {
     empty_element(document.getElementById("history-body"));
     var pair = get_current_pair();
     if (pair) {
-        var cur_history = get_current_grid().history[get_current_pair()];
+        var cur_history = get_current_history()[get_current_pair()];
         for (var i = 0; i < cur_history.length; i++) {
             draw_action(i);
         }
@@ -365,10 +378,24 @@ function draw_grid() {
     var grid = document.getElementById("grid");
     empty_element(grid);
 
+    // Add border to grid
+    var border = document.createElement("div");
+    border.id = "grid-border";
+    grid.appendChild(border);
+
     var grid_info = get_current_grid();
     var gp = grid_info.grid;
     var ep = grid_info.electrodes;
 
+    // Set grid background color
+    var grid_container = document.getElementById("grid-container");
+    if (grid_info.background) {
+        grid_container.style.backgroundImage = "url('"+grid_info.background+"')";
+    } else {
+        grid_container.style.backgroundImage = "none";
+    }
+
+    // Draw electrode pairs and screws
     for (var i = 0; i < ep.pairs.length; i++) {
         var electrode_pair = ep.pairs[i];
         var skelpair = !ep.colors[i];
@@ -453,6 +480,11 @@ function get_current_grid() {
     return grids[get_current_grid_name()];
 }
 
+// Get history for currently selected grid
+function get_current_history() {
+    return histories[get_current_grid_name()];
+}
+
 // Get redo stack for current grid and pair
 function get_current_redo_stack() {
     return redo_stacks[get_current_grid_name()];
@@ -528,8 +560,11 @@ function set_control_mode(el, event) {
 /** SCREW **/
 
 // Save history to localStorage
-function save_local() {
+function save_grids() {
     localStorage["grids"] = JSON.stringify(grids);
+}
+function save_history() {
+    localStorage["histories"] = JSON.stringify(histories);
 }
 
 // Add an action to the history and update UI
@@ -555,13 +590,13 @@ function do_action(rec) {
 
     var pair = get_current_pair();
     get_current_redo_stack()[pair] = [];
-    var history = get_current_grid().history[pair];
+    var history = get_current_history()[pair];
     history.push(rec);
     draw_action(history.length-1);
     draw_screw_text(pair);
     update_advance_buttons();
     update_history_buttons();
-    save_local();
+    save_history();
 }
 
 // Update state of advance and retract buttons
@@ -629,7 +664,7 @@ function init_electrode_status() {
 
 // Get status of current electrode pair
 function get_electrode_status(at) {
-    var hist = get_current_grid().history[get_current_pair()];
+    var hist = get_current_history()[get_current_pair()];
     for (var i = at ? at : hist.length-1; i >= 0; i--) {
         if (hist[i].status) return hist[i].status;
     }
@@ -652,7 +687,7 @@ function set_electrode_status() {
         }
     }
 
-    var pair_history = get_current_grid().history[pair];
+    var pair_history = get_current_history()[pair];
     if (pair_history.length == 0 || !pair_history[pair_history.length-1].status) {
         do_action({
             "action":"status",
@@ -662,7 +697,7 @@ function set_electrode_status() {
         pair_history[pair_history.length-1].status = newstatus;
         draw_status_td(document.getElementById("history-body").lastChild.lastChild, newstatus);
         draw_turn_status(current_screw_position-1, newstatus, true);
-        save_local();
+        save_history();
     }
     draw_screw_text(pair);
 }
@@ -740,7 +775,7 @@ function undo(event) {
 
     // Splice out
     var pair = get_current_pair();
-    var pair_history = get_current_grid().history[pair];
+    var pair_history = get_current_history()[pair];
     var recs = [];
     for (var i = 0; i < remove.length; i++) {
         recs[i] = pair_history[remove[i]];
@@ -754,7 +789,7 @@ function undo(event) {
     redraw_pair_info();
     select_last_history_entry();
     update_history_buttons();
-    save_local();
+    save_history();
 }
 
 // Redo last undo
@@ -764,7 +799,7 @@ function redo(event) {
 
     // Splice back in what we removed last time
     var entry = get_current_redo_stack()[pair].pop();
-    var pair_history = get_current_grid().history[pair];
+    var pair_history = get_current_history()[pair];
     for (var i = 0; i < entry.indices.length; i++) {
         var index = entry.indices[i];
         pair_history.splice(index, 0, entry.recs[i]);
@@ -777,11 +812,11 @@ function redo(event) {
         document.querySelector("#history-table tr[entry='"+entry.indices[i]+"']").setAttribute("selected", "1");
     }
     update_history_buttons();
-    save_local();
+    save_history();
 }
 
-function save_history() {
-    var blob = new Blob([JSON.stringify(grids, false, "\t")], {type:"application/json;charset=utf-8"});
+function save() {
+    var blob = new Blob([JSON.stringify({"grids":grids, "histories":histories}, false, "\t")], {type:"application/json;charset=utf-8"});
     saveAs(blob, "tracker.json");
 }
 
@@ -836,7 +871,7 @@ function save_image() {
 function update_history_buttons() {
     var can_undo = false, can_redo = false, pair;
     if ((pair = get_current_pair())) {
-        can_undo = get_current_grid().history[pair].length != 0;
+        can_undo = get_current_history()[pair].length != 0;
         can_redo = get_current_redo_stack()[pair].length != 0;
     }
     set_disabled(document.getElementById("undo-button"), !can_undo);
@@ -845,34 +880,36 @@ function update_history_buttons() {
 
 /** SETUP **/
 
-function load_history() {
+function load() {
     document.getElementById("hidden-load-input").click();
 }
 
-function load_history_file(file) {
+function load_file(file) {
     var reader = new FileReader();
     reader.onload = function (event) {
-        grids = JSON.parse(event.target.result);
+        grids = JSON.parse(event.target.result.grids);
+        histories = JSON.parse(event.target.result.histories);
 
         init_redo_stacks();
         init_grids();
         redraw_pair_info();
-        save_local();
+        save_grids();
+        save_history();
     };
     reader.readAsText(file);
 }
 
 function reset_history() {
     var grid = get_current_grid();
-    var history = grid.history;
+    var pair_history = get_current_history();
     var redo_stack = get_current_redo_stack();
     for (var i = 0; i < grid.electrodes.pairs.length; i++) {
-        history[i] = [];
+        pair_history[i] = [];
         redo_stack[i] = [];
     }
     redraw_pair_info();
     draw_screw_text_all();
-    save_local();
+    save_history();
 }
 
 function clear_grid() {
@@ -881,7 +918,8 @@ function clear_grid() {
     grid.electrodes.numbers = [];
     draw_grid();
     reset_history();
-    save_local();
+    save_grids();
+    save_history();
 }
 
 function new_grid() {
@@ -891,31 +929,39 @@ function new_grid() {
         name = stem + " " + i;
     }
     grids[name] = grid_template();
+    histories[name] = new_history(grid_template().electrodes.pairs);
     new_redo_stack(name);
     init_grids(true);
-    save_local();
+    save_grids();
+    save_history();
 }
 
 function delete_grid() {
     var name = get_current_grid_name();
     delete grids[name];
+    delete histories[name];
     delete redo_stacks[name];
     init_grids();
-    save_local();
+    save_grids();
+    save_history();
 }
 
 // Set grid name. Called when typing in grid name box
 function grid_name_change(newname) {
     var oldname = get_current_grid_name();
     var grid = grids[oldname];
+    var history = histories[oldname];
     var redo_stack = redo_stacks[oldname];
     var curopt = document.getElementById("grid-selector").selectedOptions[0];
     curopt.value = curopt.textContent = newname;
     delete grids[oldname];
     grids[newname] = grid;
+    delete histories[oldname];
+    histories[newname] = history;
     delete redo_stacks[oldname];
     redo_stacks[newname] = grid;
-    save_local();
+    save_grids();
+    save_history();
 }
 
 // Set rotation. Called when slider is moved or rotation is changed
@@ -933,7 +979,22 @@ function rotation_change(newrot, dontsave) {
     }
 
     get_current_grid().grid.rotation = newrot;
-    if(!dontsave) save_local();
+    if(!dontsave) save_grids();
+}
+
+// Set well background
+function set_background() {
+    document.getElementById("hidden-background-input").click();
+}
+
+function load_background(file) {
+    var reader = new FileReader();
+    reader.onload = function (event) {
+        get_current_grid()["background"] = event.target.result;
+        draw_grid();
+        save_grids();
+    };
+    reader.readAsDataURL(file);
 }
 
 // Initialize color selction buttons
@@ -987,7 +1048,7 @@ function select_color(el) {
             sel[i].style.color = tinycolor(color).getBrightness() < 127 ? "white" : "black";
         }
     }
-    save_local();
+    save_grids();
 }
 
 // Update disabled state of color buttons
@@ -1045,7 +1106,7 @@ function change_electrode_number(el) {
         electrode.classList.remove("skeleton");
     }
 
-    save_local();
+    save_grids();
 }
 
 document.addEventListener("click", function () {
