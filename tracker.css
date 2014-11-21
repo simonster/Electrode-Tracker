@@ -14,11 +14,15 @@ body, #grid-container {
     background-color: white;
 }
 
-#grid-container {
-	background-size: 100%;
+body[expanded-pos] #pos-container-container {
+    width: 70%;
 }
 
 #pos-container {
+    position: relative;
+}
+
+#pos-container-container {
     float: left;
     width: 100px;
     height: 100%;
@@ -47,7 +51,7 @@ body, #grid-container {
     text-align: left;
 }
 
-#pos {
+.pos {
     float: left;
     position: relative;
     width: 10px;
@@ -59,7 +63,7 @@ body, #grid-container {
     background-color: #666;
 }
 
-#pos > div.ltick, #pos > div.rtick {
+.pos > div.ltick, .pos > div.rtick {
     position: absolute;
     width: 2px;
     height: 1px;
@@ -68,11 +72,11 @@ body, #grid-container {
     transform: translateY(-50%);
 }
 
-#pos > div.rtick {
+.pos > div.rtick {
     right: 0;
 }
 
-#curpos {
+.curpos {
     position: absolute;
     width: 100%;
     z-index: 2;
@@ -82,7 +86,7 @@ body, #grid-container {
     transform: translateY(-50%);
 }
 
-#pos > div.turn {
+.pos > div.turn {
     position: absolute;
     background-color: black;
     left: 1px;
@@ -93,18 +97,36 @@ body, #grid-container {
     z-index: 1;
 }
 
-#pos > div.turn[state="hidden"] {
+.pos > div.turn[state="hidden"] {
     display: none;
 }
 
-#pos > div.turn[state="skipped"] {
+.pos > div.turn[state="skipped"] {
     background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAD0lEQVQYlWNgwA/+jxBJABEwB/nD5jfnAAAAAElFTkSuQmCC);
     background-size: 4px 4px;
 }
 
-#grid-selector-container {
-    text-align: center;
-    padding-bottom: 6px;
+#pos-expand-button {
+    position: absolute;
+    right: 1.5em;
+    border-radius: 5px;
+    border: 1px solid black;
+    padding: 1px;
+    line-height: 1em;
+    height: 0.85em;
+    font-size: 1.1em;
+    -webkit-transform: translateY(-0.5em);
+    transform: translateY(-0.5em);
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    cursor: pointer;
+}
+
+#pos-expand-button:active {
+    background-color: #aaa;
 }
 
 #grid-container-container {
@@ -113,7 +135,17 @@ body, #grid-container {
     overflow: hidden;
 }
 
+body[expanded-pos] #grid-container-container {
+    display: none;
+}
+
+#grid-selector-container {
+    text-align: center;
+    padding-bottom: 6px;
+}
+
 #grid-container {
+    background-size: 100%;
     position: relative;
 }
 
@@ -208,13 +240,13 @@ body, #grid-container {
 }
 
 .screw-text {
-	font-size: 1.2vw;
-	line-height: 1.05em;
+    font-size: 1.2vw;
+    line-height: 1.05em;
 }
 
 .screw-position-text {
     font-size: 0.9vw;
-	line-height: 1.1em;
+    line-height: 1.1em;
     white-space: pre;
 }
 
@@ -348,7 +380,7 @@ a.pure-button {
     text-align: center;
 }
 
-#new-grid-form {
+#setup-buttons, #add-buttons {
     padding-top: 6pt;
 }
 
@@ -376,7 +408,7 @@ a.pure-button {
 }
 
 #rotation-form-fieldset {
-	padding-bottom: 0.35em;
+    padding-bottom: 0.35em;
 }
 
 #gridname {
@@ -388,7 +420,7 @@ a.pure-button {
 }
 
 #rotation-slider-container {
-	margin-top: 6px;
+    margin-top: 6px;
     text-align: center;
 }
 
@@ -407,7 +439,7 @@ a.pure-button {
 }
 
 #color {
-	margin-top: 12px;
+    margin-top: 12px;
 }
 
 #color[disabled] > .color-button {

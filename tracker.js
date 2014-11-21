@@ -33,47 +33,54 @@ function grid_template() {
             "grid_diameter":18.6,
             
             // Center offset and diameter of screw relative to electrode pairs
-            "screw_offset":[0, 0],
+            "screw_offset":[0, 1.4986],
             "screw_diameter":1.5,
 
             // Center offset and diameter of electrodes relative to electrode pairs
-            "electrode_offsets":[[-0.5, 1.25], [0.5, 1.25]],
+            "electrode_offsets":[[-.508, 0], [.508, 0]],
             "electrode_diameter":0.9,
 
             "rotation":0
         },
         "electrodes":{
             "pairs":[
-                [-3.75,  5.35],
-                [-1.25,  5.35],
-                [ 1.25,  5.35],
-                [ 3.75,  5.35],
-                [-6.25,  2.35],
-                [-3.75,  2.35],
-                [-1.25,  2.35],
-                [ 1.25,  2.35],
-                [ 3.75,  2.35],
-                [ 6.25,  2.35],
-                [-6.25, -0.65],
-                [-3.75, -0.65],
-                [-1.25, -0.65],
-                [ 1.25, -0.65],
-                [ 3.75, -0.65],
-                [ 6.25, -0.65],
-                [-6.25, -3.65],
-                [-3.75, -3.65],
-                [-1.25, -3.65],
-                [ 1.25, -3.65],
-                [ 3.75, -3.65],
-                [ 6.25, -3.65],
-                [-3.75, -6.65],
-                [-1.25, -6.65],
-                [ 1.25, -6.65],
-                [ 3.75, -6.65]
+                //[ 6.223,   -6.7437],
+                [ 3.7338,  -6.7437],
+                [ 1.2446,  -6.7437],
+                [-1.2446,  -6.7437],
+                [-3.7338,  -6.7437],
+                //[-6.223,   -6.7437],
+                [ 6.223,   -3.7465],
+                [ 3.7338,  -3.7465],
+                [ 1.2446,  -3.7465],
+                [-1.2446,  -3.7465],
+                [-3.7084,  -3.7465],
+                [-6.223,   -3.7465],
+                [ 6.223,   -0.7493],
+                [ 3.7338,  -0.7493],
+                [ 1.2446,  -0.7493],
+                [-1.2446,  -0.7493],
+                [-3.7338,  -0.7493],
+                [-6.223,   -0.7493],
+                [ 6.223,    2.2479],
+                [ 3.7338,   2.2479],
+                [ 1.2446,   2.2479],
+                [-1.2446,   2.2479],
+                [-3.7338,   2.2479],
+                [-6.223,    2.2479],
+                //[ 6.223,    5.2451],
+                [ 3.7338,   5.2451],
+                [ 1.2446,   5.2451],
+                [-1.2446,   5.2451],
+                [-3.7338,   5.2451],
+                //[-6.223,    5.2451],
+                // [ 1.2446,   8.2423],
+                // [-1.2446,   8.2423]
             ],
             "colors":[],
             "numbers":[]
-        }
+        },
+        "histories":{}
     };
     return g1;
 }
@@ -96,13 +103,12 @@ if ("histories" in localStorage) {
     var histories = JSON.parse(localStorage["histories"]);
 } else {
     var histories = {};
-    for (var gridname in grids) {
+}
+for (var gridname in grids) {
+    if (!histories.hasOwnProperty(gridname)) {
         histories[gridname] = new_history(grids[gridname].electrodes.pairs);
     }
 }
-
-// Position of the current screw
-var current_screw_position = 0;
 
 // Stack of old screw_history for redo for each screw
 var redo_stacks = {};
@@ -169,26 +175,27 @@ function init_grids(select_last) {
     select_grid();
 }
 
+// Pad a string with another string on the left to a given length
+function lpad(str, len, withstr) {
+    var newstr = str.toString();
+    if (!withstr) withstr = "0";
+    while (newstr.length < len) {
+        newstr = withstr + newstr;
+    }
+    return newstr;
+}
+
+// Disambiguate a name by adding an increasing number to stem
+// (if necessary) until it is no longer ambiguous with keys of v
+function disambiguate(stem, v) {
+    var name = stem;
+    for(var i = 1; v.hasOwnProperty(name); i++) {
+        name = stem + " " + i;
+    }
+    return name;
+}
+
 /** DRAWING IN RESPONSE TO EVENTS **/
-
-// Insert text and background into a td element representing status
-function draw_status_td(statustd, status) {
-    statustd.textContent = ELECTRODE_STATUS[status].shortlabel;
-    statustd.style.backgroundColor = tinycolor(ELECTRODE_STATUS[status].color).setAlpha(0.5);
-}
-
-// Draw color for a specific position (in turns)
-function draw_turn_status(pos, status, hit) {
-    if (pos < 0) return;
-
-    var turn = document.getElementById("turn-"+pos);
-    
-    // Don't overwrite explicit information
-    if (turn.getAttribute("state") === "hit" && !hit) return;
-
-    turn.style.backgroundColor = ELECTRODE_STATUS[status].color;
-    turn.setAttribute("state", hit ? "hit" : "skipped");
-}
 
 // Draw screw text based on current position and status
 function draw_screw_text(pair) {
@@ -215,9 +222,10 @@ function draw_screw_text_all() {
     }
 }
 
-// Draw bar at current position on position axes
-function draw_current_position() {
-    document.getElementById("curpos").style.top = current_screw_position/MAX_TURNS*100+"%";
+// Insert text and background into a td element representing status
+function draw_status_td(statustd, status) {
+    statustd.textContent = ELECTRODE_STATUS[status].shortlabel;
+    statustd.style.backgroundColor = tinycolor(ELECTRODE_STATUS[status].color).setAlpha(0.5);
 }
 
 // Append a history row to the table in the document. Also update position info
@@ -233,28 +241,14 @@ function draw_action(at) {
     if (rec.action == "advance") {
         actiontd.textContent = (rec.nturns < 0 ? "Retracted " : "Advanced ") + Math.abs(rec.nturns)+ " turn" + 
                                (Math.abs(rec.nturns) != 1 ? "s" : "");
-
-        var last = Math.max(0, Math.round(current_screw_position+rec.nturns-1));
-        var oldstatus = get_electrode_status(at-1);
-        if (rec.nturns < 0) {
-            for (var i = Math.round(current_screw_position-1); i > last; i--) {
-                draw_turn_status(i, oldstatus, false);
-            }
-        } else {
-            for (var i = Math.round(current_screw_position); i < last; i++) {
-                draw_turn_status(i, oldstatus, false);
-            }
-        }
-        draw_turn_status(last, rec.status, true);
-
-        current_screw_position += rec.nturns;
         draw_current_position();
     } else if (rec.action == "status") {
         actiontd.textContent = "Set status";
-        draw_turn_status(current_screw_position-1, rec.status, true);
     } else if (rec.action == "note") {
         actiontd.textContent = "Note: "+rec.note;
     }
+
+    position.draw_action(at, pair_history);
 
     tr.appendChild(timetd);
     tr.appendChild(actiontd);
@@ -276,8 +270,8 @@ function draw_action(at) {
 // Redraw controls after selection of a new pair or undo
 function redraw_pair_info() {
     // Reset position and clear turn status
-    current_screw_position = 0;
-    var turns = document.querySelectorAll(".turn");
+    position.curpos = 0;
+    var turns = document.querySelectorAll("#pos .turn");
     for (var i = 0; i < turns.length; i++) {
         turns[i].setAttribute("state", "hidden");
     }
@@ -288,7 +282,7 @@ function redraw_pair_info() {
     if (pair) {
         var cur_history = get_current_history()[get_current_pair()];
         for (var i = 0; i < cur_history.length; i++) {
-            draw_action(i);
+            draw_action(i, cur_history);
         }
         draw_current_position();
         draw_screw_text(pair);
@@ -318,7 +312,126 @@ function redraw_pair_info() {
     update_color_buttons();
 }
 
-/** POSITIONING AND GRID **/
+/** POSITION **/
+
+// Class for a specific position view
+function PositionView(pos) {
+    for (var i = 0; i <= MAX_TURNS-1; i++) {
+        var turn = document.createElement("div");
+        turn.className = "turn turn-"+i;
+        turn.style.top = i/MAX_TURNS*100+"%";
+        turn.style.height = 100/MAX_TURNS+"%";
+        turn.setAttribute("state", "hidden");
+        pos.appendChild(turn);
+    }
+
+    for (var i = 0; i <= MAX_TURNS; i += TICK_SPACING) {
+        var tickpos = i/MAX_TURNS*100+"%";
+        ["ltick", "rtick"].map(function (className) {
+            var tick = document.createElement("div");
+            tick.className = className;
+            tick.style.top = tickpos;
+            pos.appendChild(tick);
+        });
+    }
+    this.el = pos;
+    this.curpos = 0;
+}
+
+PositionView.prototype = {
+    // Draw color for a specific position (in turns)
+    "draw_turn_status":function(pos, status, hit) {
+        if (pos < 0) return;
+
+        var turn = this.el.querySelector(".turn-"+pos);
+        
+        // Don't overwrite explicit information
+        if (turn.getAttribute("state") === "hit" && !hit) return;
+
+        turn.style.backgroundColor = ELECTRODE_STATUS[status].color;
+        turn.setAttribute("state", hit ? "hit" : "skipped");
+    },
+
+    // Draw a history record
+    "draw_action":function(at, pair_history) {
+        var rec = pair_history[at];
+        if (rec.action == "advance") {
+            var last = Math.max(0, Math.round(this.curpos+rec.nturns-1));
+            var oldstatus = get_electrode_status(at-1, pair_history);
+            if (rec.nturns < 0) {
+                for (var i = Math.round(this.curpos-1); i > last; i--) {
+                    this.draw_turn_status(i, oldstatus, false);
+                }
+            } else {
+                for (var i = Math.round(this.curpos); i < last; i++) {
+                    this.draw_turn_status(i, oldstatus, false);
+                }
+            }
+            this.draw_turn_status(last, rec.status, true);
+            this.curpos += rec.nturns;
+        } else if (rec.action == "status") {
+            this.draw_turn_status(this.curpos-1, rec.status, true);
+        }
+    }
+};
+
+function init_ticks() {
+    for (var i = 0; i <= MAX_TURNS; i += TICK_SPACING) {
+        var tickpos = i/MAX_TURNS*100+"%";
+
+        var lticklabel = document.createElement("div");
+        lticklabel.className = "tick-label";
+        lticklabel.style.top = tickpos;
+        lticklabel.textContent = i;
+        document.getElementById("pos-ltick-labels").appendChild(lticklabel);
+
+        var rticklabel = document.createElement("div");
+        rticklabel.className = "tick-label";
+        rticklabel.style.top = tickpos;
+        rticklabel.textContent = Math.round(i*MM_PER_TURN*10)/10;
+        document.getElementById("pos-rtick-labels").appendChild(rticklabel);
+    }
+}
+
+// Draw bar at current position on position axes
+function draw_current_position() {
+    var poses = document.querySelectorAll(".curpos");
+    for (var i = 0; i < poses.length; i++) {
+        poses[i].style.top = position.curpos/MAX_TURNS*100+"%";
+    }
+}
+
+// Handle a click on the expand button
+function toggle_expanded_pos() {
+    var histpos = document.getElementById("histpos");
+    if (document.body.hasAttribute("expanded-pos")) {
+        document.body.removeAttribute("expanded-pos");
+        document.getElementById("pos-expand-button").textContent = "\u21e2";
+        empty_element(histpos);
+    } else {
+        document.body.setAttribute("expanded-pos", "1");
+        document.getElementById("pos-expand-button").textContent = "\u21e0";
+
+        var grid = get_current_grid();
+        var keys = Object.keys(grid.histories);
+        keys.reverse();
+        for (var j = 0; j < keys.length; j++) {
+            var histname = keys[j];
+            var posel = document.createElement("div");
+            posel.className = "pos";
+            var pos = new PositionView(posel);
+
+            var hist = grid.histories[histname][get_current_pair()];
+            if (!hist) continue;
+            for (var i = 0; i < hist.length; i++) {
+                pos.draw_action(i, hist);
+            }
+            histpos.appendChild(posel);
+        }
+    }
+}
+
+/** GRID **/
 
 function select_grid(name) {
     if (name) {
@@ -335,43 +448,6 @@ function select_grid(name) {
     document.getElementById("gridname").value = get_current_grid_name();
 }
 
-// Draw position axes and ticks
-var turns = [];
-function init_pos() {
-    for (var i = 0; i <= MAX_TURNS-1; i++) {
-        var turn = document.createElement("div");
-        turn.className = "turn";
-        turn.id = "turn-"+i;
-        turn.style.top = i/MAX_TURNS*100+"%";
-        turn.style.height = 100/MAX_TURNS+"%";
-        turn.setAttribute("state", "hidden");
-        document.getElementById("pos").appendChild(turn);
-        turns.push(turn);
-    }
-
-    for (var i = 0; i <= MAX_TURNS; i += TICK_SPACING) {
-        var tickpos = i/MAX_TURNS*100+"%";
-
-        var lticklabel = document.createElement("div");
-        lticklabel.className = "tick-label";
-        lticklabel.style.top = tickpos;
-        lticklabel.textContent = i;
-        document.getElementById("pos-ltick-labels").appendChild(lticklabel);
-
-        ["ltick", "rtick"].map(function (className) {
-            var ltick = document.createElement("div");
-            ltick.className = className;
-            ltick.style.top = tickpos;
-            document.getElementById("pos").appendChild(ltick);
-        });
-
-        var rticklabel = document.createElement("div");
-        rticklabel.className = "tick-label";
-        rticklabel.style.top = tickpos;
-        rticklabel.textContent = Math.round(i*MM_PER_TURN*10)/10;
-        document.getElementById("pos-rtick-labels").appendChild(rticklabel);
-    }
-}
 
 // Draw grid
 function draw_grid() {
@@ -580,13 +656,7 @@ function do_action(rec) {
         ampm = "PM";
         rec.time = hr == 12 ? "12" : (hr-12).toString();
     }
-    rec.time += ":";
-    var min = t.getMinutes();
-    if (min < 10) rec.time += "0";
-    rec.time += min+":";
-    var sec = t.getSeconds();
-    if (sec < 10) rec.time += "0";
-    rec.time += sec+" "+ampm;
+    rec.time += ":"+lpad(t.getMinutes(), 2)+":"+lpad(t.getSeconds(), 2)+" "+ampm;
 
     var pair = get_current_pair();
     get_current_redo_stack()[pair] = [];
@@ -614,14 +684,14 @@ function update_advance_buttons() {
     for (var i = 0; i < advance_buttons.length; i++) {
         var nturns = advance_buttons[i].getElementsByClassName("electrode-nturns");
         amount = nturns.length ? parseFloat(nturns[0].value) : 1;
-        set_disabled(advance_buttons[i], amount != amount || amount < 1 || current_screw_position + amount > MAX_TURNS || !pair);
+        set_disabled(advance_buttons[i], amount != amount || amount < 1 || position.curpos + amount > MAX_TURNS || !pair);
     }
 
     var retract_buttons = document.querySelectorAll(".retract-button");
     for (var i = 0; i < retract_buttons.length; i++) {
         var nturns = retract_buttons[i].getElementsByClassName("electrode-nturns");
         amount = nturns.length ? parseFloat(nturns[0].value) : 1;
-        set_disabled(retract_buttons[i], amount != amount || amount < 1 || current_screw_position - amount < 0 || !pair);
+        set_disabled(retract_buttons[i], amount != amount || amount < 1 || position.curpos - amount < 0 || !pair);
     }
 }
 
@@ -631,8 +701,8 @@ function advance(nturns) {
     var pair = get_current_pair();
     if (!pair ||
         nturns != nturns ||
-        current_screw_position + nturns < 0 ||
-        current_screw_position + nturns > MAX_TURNS) return;
+        position.curpos + nturns < 0 ||
+        position.curpos + nturns > MAX_TURNS) return;
     do_action({
         "action":"advance",
         "nturns":nturns,
@@ -663,8 +733,8 @@ function init_electrode_status() {
 }
 
 // Get status of current electrode pair
-function get_electrode_status(at) {
-    var hist = get_current_history()[get_current_pair()];
+function get_electrode_status(at, hist) {
+    if (!hist) hist = get_current_history()[get_current_pair()];
     for (var i = at ? at : hist.length-1; i >= 0; i--) {
         if (hist[i].status) return hist[i].status;
     }
@@ -696,7 +766,7 @@ function set_electrode_status() {
     } else {
         pair_history[pair_history.length-1].status = newstatus;
         draw_status_td(document.getElementById("history-body").lastChild.lastChild, newstatus);
-        draw_turn_status(current_screw_position-1, newstatus, true);
+        position.draw_turn_status(position.curpos-1, newstatus, true);
         save_history();
     }
     draw_screw_text(pair);
@@ -840,7 +910,7 @@ function save_image() {
             <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024">\
                 <style type="text/css">'+stylesheet+'</style>\
                 <foreignObject width="100%" height="100%">\
-                    <div style="margin: 0 4px 4px 0" xmlns="http://www.w3.org/1999/xhtml" >\
+                    <div style="margin:[0, 4]px 4px 0" xmlns="http://www.w3.org/1999/xhtml" >\
                         <div id="grid-container">\
                             '+document.getElementById("grid-container").innerHTML+'\
                         </div>\
@@ -879,6 +949,16 @@ function update_history_buttons() {
 }
 
 /** SETUP **/
+
+function save_historical() {
+    var d = new Date();
+    var datestr = lpad(d.getFullYear(), 4)+"-"+lpad(d.getMonth()+1, 2)+"-"+lpad(d.getDate(), 2);
+    var historyname = disambiguate(datestr, grids[Object.keys(grids)[0]].histories);
+    for (var gridname in grids) {
+        grids[gridname].histories[historyname] = JSON.parse(JSON.stringify(histories[gridname]));
+    }
+    reset_history();
+}
 
 function load() {
     document.getElementById("hidden-load-input").click();
@@ -923,11 +1003,7 @@ function clear_grid() {
 }
 
 function new_grid() {
-    var stem = "Untitled Grid";
-    var name = stem;
-    for(var i = 1; name in grids; i++) {
-        name = stem + " " + i;
-    }
+    var name = disambiguate("Untitled Grid", grids);
     grids[name] = grid_template();
     histories[name] = new_history(grid_template().electrodes.pairs);
     new_redo_stack(name);
@@ -1119,7 +1195,8 @@ document.addEventListener("click", function () {
 // Not sure why the attribute won't work
 set_disabled(document.getElementById("note"), true);
 init_redo_stacks();
-init_pos();
+var position = new PositionView(document.getElementById("pos"));
+init_ticks();
 init_grids();
 init_electrode_status();
 init_color_buttons();
