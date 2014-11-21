@@ -30,11 +30,11 @@ const TICK_SPACING = 3;
 function grid_template() {
     var g1 = {
         "grid":{
-            "grid_diameter":18.6,
+            "grid_diameter":19,
             
             // Center offset and diameter of screw relative to electrode pairs
-            "screw_offset":[0, 1.4986],
-            "screw_diameter":1.5,
+            "screw_offset":[0, -1.4986],
+            "screw_diameter":1.8,
 
             // Center offset and diameter of electrodes relative to electrode pairs
             "electrode_offsets":[[-.508, 0], [.508, 0]],
@@ -44,43 +44,44 @@ function grid_template() {
         },
         "electrodes":{
             "pairs":[
-                //[ 6.223,   -6.7437],
-                [ 3.7338,  -6.7437],
-                [ 1.2446,  -6.7437],
-                [-1.2446,  -6.7437],
-                [-3.7338,  -6.7437],
-                //[-6.223,   -6.7437],
-                [ 6.223,   -3.7465],
-                [ 3.7338,  -3.7465],
-                [ 1.2446,  -3.7465],
-                [-1.2446,  -3.7465],
-                [-3.7084,  -3.7465],
-                [-6.223,   -3.7465],
-                [ 6.223,   -0.7493],
-                [ 3.7338,  -0.7493],
-                [ 1.2446,  -0.7493],
-                [-1.2446,  -0.7493],
-                [-3.7338,  -0.7493],
-                [-6.223,   -0.7493],
-                [ 6.223,    2.2479],
-                [ 3.7338,   2.2479],
-                [ 1.2446,   2.2479],
-                [-1.2446,   2.2479],
-                [-3.7338,   2.2479],
-                [-6.223,    2.2479],
-                //[ 6.223,    5.2451],
-                [ 3.7338,   5.2451],
-                [ 1.2446,   5.2451],
-                [-1.2446,   5.2451],
-                [-3.7338,   5.2451],
-                //[-6.223,    5.2451],
-                // [ 1.2446,   8.2423],
-                // [-1.2446,   8.2423]
+                // [-6.223,    6.7437],
+                [-3.7338,   6.7437],
+                [-1.2446,   6.7437],
+                [ 1.2446,   6.7437],
+                [ 3.7338,   6.7437],
+                // [ 6.223,    6.7437],
+                [-6.223,    3.7465],
+                [-3.7338,   3.7465],
+                [-1.2446,   3.7465],
+                [ 1.2446,   3.7465],
+                [ 3.7084,   3.7465],
+                [ 6.223,    3.7465],
+                [-6.223,    0.7493],
+                [-3.7338,   0.7493],
+                [-1.2446,   0.7493],
+                [ 1.2446,   0.7493],
+                [ 3.7338,   0.7493],
+                [ 6.223,    0.7493],
+                [-6.223,   -2.2479],
+                [-3.7338,  -2.2479],
+                [-1.2446,  -2.2479],
+                [ 1.2446,  -2.2479],
+                [ 3.7338,  -2.2479],
+                [ 6.223,   -2.2479],
+                // [-6.223,   -5.2451],
+                [-3.7338,  -5.2451],
+                [-1.2446,  -5.2451],
+                [ 1.2446,  -5.2451],
+                [ 3.7338,  -5.2451],
+                // [ 6.223,   -5.2451],
+                // [-1.2446,  -8.2423],
+                // [ 1.2446,  -8.2423]
             ],
             "colors":[],
             "numbers":[]
         },
-        "histories":{}
+        "histories":{},
+        "offsets":{}
     };
     return g1;
 }
@@ -307,6 +308,7 @@ function redraw_pair_info() {
     }
 
     // Update buttons
+    update_expand_button();
     update_advance_buttons();
     update_history_buttons();
     update_color_buttons();
@@ -372,6 +374,17 @@ PositionView.prototype = {
         } else if (rec.action == "status") {
             this.draw_turn_status(this.curpos-1, rec.status, true);
         }
+    },
+
+    // Shift display up or down
+    "shift":function(nturns) {
+        var turns = this.el.querySelectorAll(".turn");
+        var shift = nturns/MAX_TURNS*100;
+        for (var i = 0; i < turns.length; i++) {
+            var turn = turns[i];
+            var oldtop = turn.style.top;
+            turn.style.top = parseFloat(oldtop.substr(oldtop, oldtop.length-1)) + shift + "%";
+        }
     }
 };
 
@@ -402,33 +415,122 @@ function draw_current_position() {
 }
 
 // Handle a click on the expand button
+var mri_resizer;
+var xcenter;
+const MRI_HEIGHT = MAX_TURNS*MM_PER_TURN*2; // assumes 0.5 mm iso
 function toggle_expanded_pos() {
     var histpos = document.getElementById("histpos");
     if (document.body.hasAttribute("expanded-pos")) {
         document.body.removeAttribute("expanded-pos");
         document.getElementById("pos-expand-button").textContent = "\u21e2";
         empty_element(histpos);
+        if (!mri_resizer) {
+            window.removeEventListener("resize", mri_resizer, false);
+        }
     } else {
-        document.body.setAttribute("expanded-pos", "1");
         document.getElementById("pos-expand-button").textContent = "\u21e0";
 
+        // Historical
         var grid = get_current_grid();
+        var pair = get_current_pair();
         var keys = Object.keys(grid.histories);
         keys.reverse();
         for (var j = 0; j < keys.length; j++) {
             var histname = keys[j];
-            var posel = document.createElement("div");
-            posel.className = "pos";
-            var pos = new PositionView(posel);
+            var posdiv = document.createElement("div");
+            posdiv.className = "posdiv";
 
-            var hist = grid.histories[histname][get_current_pair()];
+            var upbutton = document.createElement("div");
+            upbutton.className = "pos-button";
+            upbutton.textContent = "\u21e3";
+
+            var downbutton = document.createElement("div");
+            downbutton.className = "pos-button";
+            downbutton.textContent = "\u21e1";
+
+            var posel = document.createElement("a");
+            posel.className = "pos";
+            posel.title = histname;
+            var pos = new PositionView(posel);
+            pos.shift(grid.offsets[histname]);
+
+            var hist = grid.histories[histname][pair];
             if (!hist) continue;
             for (var i = 0; i < hist.length; i++) {
                 pos.draw_action(i, hist);
             }
-            histpos.appendChild(posel);
+
+            upbutton.addEventListener("click", function() {
+                pos.shift(1);
+                grid.offsets[histname] += 1;
+                save_grids();
+            }, false);
+            downbutton.addEventListener("click", function() {
+                pos.shift(-1);
+                grid.offsets[histname] -= 1;
+                save_grids();
+            }, false);
+
+            posdiv.appendChild(upbutton);
+            posdiv.appendChild(posel);
+            posdiv.appendChild(downbutton);
+            histpos.appendChild(posdiv);
         }
+
+        // MRI
+        if (pair !== undefined && grid.projection) {
+            // x and y coordinates in image to extract
+            var x = grid.electrodes.pairs[pair][0];
+            var y = grid.electrodes.pairs[pair][1];
+            var cd = Math.cos(grid.grid.rotation*Math.PI/180);
+            var sd = Math.sin(grid.grid.rotation*Math.PI/180);
+
+            var xp = x*cd - y*sd;
+            var yp = x*sd + y*cd;
+
+            // Image coordinates of center of projection slice
+            // Assumes that the png is 41 pseudo-coronal slices,
+            // centered at the chamber center, with 121 px width
+            xcenter = Math.round(yp*2 + 41)*121 + Math.round(xp*2 + 61);
+
+            var img = document.getElementById("hidden-img");
+            img.src = "";
+            img.src = grid.projection;
+            img.onload = function() {
+                var canvas = document.getElementById("projection");
+                canvas.width = 41;
+                canvas.height = MRI_HEIGHT;
+
+                var ctx = canvas.getContext('2d');
+                var projection_offset = grid.projection_offset || 0;
+                ctx.drawImage(img, xcenter-20, 51+projection_offset, 41, MRI_HEIGHT, 0, 0, 41, MRI_HEIGHT);
+
+                canvas.style.width = canvas.offsetHeight*canvas.width/MRI_HEIGHT+"px";
+                mri_resizer = function() {
+                    canvas.style.width = canvas.offsetHeight*canvas.width/MRI_HEIGHT+"px";
+                };
+                window.addEventListener("resize", mri_resizer, false);
+            };
+        }
+
+        document.body.setAttribute("expanded-pos", "1");
     }
+}
+
+function update_expand_button() {
+    set_disabled(document.getElementById("pos-expand-button"), get_current_pair() === undefined);
+}
+
+function move_projection(nturns) {
+    var grid = get_current_grid();
+    grid.projection_offset = (grid.projection_offset || 0) + nturns;
+
+    var canvas = document.getElementById("projection");
+    var ctx = canvas.getContext('2d');
+    var img = document.getElementById("hidden-img");
+    ctx.drawImage(img, xcenter-20, 51+grid.projection_offset, 41, MRI_HEIGHT, 0, 0, 41, MRI_HEIGHT);
+
+    save_grids();
 }
 
 /** GRID **/
@@ -445,6 +547,9 @@ function select_grid(name) {
         }
     }
     draw_grid();
+    update_expand_button();
+    update_advance_buttons();
+    update_history_buttons();
     document.getElementById("gridname").value = get_current_grid_name();
 }
 
@@ -789,6 +894,7 @@ function select_last_history_entry() {
     if (rows.length > 1) {
         rows[rows.length-1].setAttribute("selected", "1");
     }
+    update_history_buttons();
 }
 
 function toggle_selection(el) {
@@ -858,7 +964,6 @@ function undo(event) {
     // Redraw
     redraw_pair_info();
     select_last_history_entry();
-    update_history_buttons();
     save_history();
 }
 
@@ -904,7 +1009,9 @@ function get_tracker_stylesheet(callback) {
 
 function save_image() {
     get_tracker_stylesheet(function (stylesheet) {
-        var canvas = document.getElementById("save-canvas");
+        var canvas = document.getElementById("canvas");
+        canvas.width = 1024;
+        canvas.height = 1024;
         var ctx = canvas.getContext('2d');
         var data = '\
             <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024">\
@@ -956,6 +1063,7 @@ function save_historical() {
     var historyname = disambiguate(datestr, grids[Object.keys(grids)[0]].histories);
     for (var gridname in grids) {
         grids[gridname].histories[historyname] = JSON.parse(JSON.stringify(histories[gridname]));
+        grids[gridname].offsets[historyname] = 0;
     }
     reset_history();
 }
@@ -1013,6 +1121,7 @@ function new_grid() {
 }
 
 function delete_grid() {
+    if (Object.keys(grids).length <= 1) return;
     var name = get_current_grid_name();
     delete grids[name];
     delete histories[name];
@@ -1068,6 +1177,20 @@ function load_background(file) {
     reader.onload = function (event) {
         get_current_grid()["background"] = event.target.result;
         draw_grid();
+        save_grids();
+    };
+    reader.readAsDataURL(file);
+}
+
+// Set well projection
+function set_projection() {
+    document.getElementById("hidden-projection-input").click();
+}
+
+function load_projection(file) {
+    var reader = new FileReader();
+    reader.onload = function (event) {
+        get_current_grid()["projection"] = event.target.result;
         save_grids();
     };
     reader.readAsDataURL(file);

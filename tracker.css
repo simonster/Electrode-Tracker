@@ -31,7 +31,8 @@ body[expanded-pos] #pos-container-container {
 .tick-labels {
     position: relative;
     float: left;
-    height: 100%;
+    height: calc(100% - 44px);
+    margin-top: 25px;
     width: 1em;
 }
 
@@ -51,19 +52,28 @@ body[expanded-pos] #pos-container-container {
     text-align: left;
 }
 
-.pos {
+.posdiv {
     float: left;
     position: relative;
-    width: 10px;
-    border: 1px solid black;
-    height: 100%;
+    width: 16px;
     margin-left: 2px;
     margin-right: 2px;
-    overflow: hidden;
-    background-color: #666;
 }
 
-.pos > div.ltick, .pos > div.rtick {
+.pos {
+    display: block;
+    height: calc(100% - 44px);
+    position: relative;
+    background-color: #666;
+    border: 1px solid black;
+    overflow: hidden;
+}
+
+#pos {
+    margin-top: 22px;
+}
+
+.pos div.ltick, .pos div.rtick {
     position: absolute;
     width: 2px;
     height: 1px;
@@ -72,7 +82,7 @@ body[expanded-pos] #pos-container-container {
     transform: translateY(-50%);
 }
 
-.pos > div.rtick {
+.pos div.rtick {
     right: 0;
 }
 
@@ -106,17 +116,59 @@ body[expanded-pos] #pos-container-container {
     background-size: 4px 4px;
 }
 
+#projection-container-container {
+    position: relative;
+    right: -2em;
+    text-align: right;
+    display: none;
+}
+
+#projection-container {
+    position: relative;
+    margin-left: auto;
+    display: inline-block;
+}
+
+#projection {
+    height: calc(100% - 44px);
+    display: none;
+}
+
+.projection-button {
+    width: 20px;
+    text-align: center;
+    margin: auto;
+}
+
+#projection-line {
+    position: absolute;
+    top: 22px;
+    bottom: 22px;
+    left: calc(50% - 1px);
+    border: 1px solid magenta;
+    z-index: 10;
+}
+
+body[expanded-pos] #projection-container-container, body[expanded-pos] #projection {
+    display: inline-block;
+}
+
 #pos-expand-button {
     position: absolute;
+    top: 0;
     right: 1.5em;
+}
+
+.pos-button {
+    display: block;
     border-radius: 5px;
     border: 1px solid black;
     padding: 1px;
-    line-height: 1em;
-    height: 0.85em;
-    font-size: 1.1em;
-    -webkit-transform: translateY(-0.5em);
-    transform: translateY(-0.5em);
+    line-height: 19px;
+    height: 16px;
+    font-size: 18px;
+    margin-top: 1px;
+    margin-bottom: 1px;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -125,8 +177,17 @@ body[expanded-pos] #pos-container-container {
     cursor: pointer;
 }
 
-#pos-expand-button:active {
+.pos-button:active {
     background-color: #aaa;
+}
+
+.pos-button[disabled] {
+    color: #aaa;
+    border-color: #aaa;
+}
+
+.pos-button[disabled]:active {
+    background-color: inherit;
 }
 
 #grid-container-container {
@@ -240,12 +301,12 @@ body[expanded-pos] #grid-container-container {
 }
 
 .screw-text {
-    font-size: 1.2vw;
-    line-height: 1.05em;
+    font-size: 1.3vw;
+    line-height: 1.1em;
 }
 
 .screw-position-text {
-    font-size: 0.9vw;
+    font-size: 1vw;
     line-height: 1.1em;
     white-space: pre;
 }
@@ -380,10 +441,6 @@ a.pure-button {
     text-align: center;
 }
 
-#setup-buttons, #add-buttons {
-    padding-top: 6pt;
-}
-
 #new-grid {
     position: relative;
     top: 5px;
@@ -393,6 +450,10 @@ a.pure-button {
     box-sizing: border-box;
     padding: 0.2em 0.3em;
     font-size: 2em;
+}
+
+.button-group {
+    padding-top: 6pt;
 }
 
 #rotation-form {
@@ -420,7 +481,7 @@ a.pure-button {
 }
 
 #rotation-slider-container {
-    margin-top: 6px;
+    margin-top: 12px;
     text-align: center;
 }
 
@@ -462,8 +523,4 @@ a.pure-button {
 
 .pure-form-aligned .pure-control-group label {
     width: 5em;
-}
-
-#save-canvas {
-    display: none;
 }

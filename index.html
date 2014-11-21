@@ -12,12 +12,22 @@
     <div id="pos-container-container">
         <div id="pos-container">
             <div id="pos-ltick-labels" class="tick-labels"></div>
-            <div id="pos" class="pos">
-                <div id="curpos" class="curpos"></div>
+            <div class="posdiv">
+                <div id="pos" class="pos">
+                    <div id="curpos" class="curpos"></div>
+                </div>
             </div>
             <div id="histpos"></div>
             <div id="pos-rtick-labels" class="tick-labels"></div>
-            <div id="pos-expand-button" onclick="toggle_expanded_pos()">⇢</div>
+            <div id="projection-container-container">
+                <div id="projection-container">
+                    <a class="projection-button pos-button" onclick="move_projection(-1)">⇡</a>
+                    <canvas id="projection"></canvas>
+                    <div id="projection-line"></div>
+                    <a class="projection-button pos-button" onclick="move_projection(1)">⇣</a>
+                </div>
+            </div>
+            <div id="pos-expand-button" class="pos-button" onclick="toggle_expanded_pos()" disabled="1">⇢</div>
         </div>
     </div>
     <div id="grid-container-container">
@@ -105,13 +115,13 @@
             <div id="historical-buttons">
                 <a class="pure-button" onclick="save_historical()">Save Historical Data</a>
             </div>
-            <div id="setup-buttons">
+            <div class="button-group">
                 <a class="pure-button" onclick="load()">Load</a>
                 <a class="pure-button" onclick="reset_history()">Reset</a>
                 <a class="pure-button" onclick="clear_grid()">Clear</a>
                 <input type="file" id="hidden-load-input" style="display:none" onchange="load_file(this.files[0])">
             </div>
-            <div id="add-buttons">
+            <div class="button-group">
                 <a class="pure-button" onclick="new_grid()">New Grid</a>
                 <a id="delete-grid" class="pure-button" onclick="delete_grid()">Delete Grid</a>
             </div>
@@ -130,10 +140,14 @@
                     </div>
                 </fieldset>
             </form>
-            <div id="set-background-button">
+            <div>
                 <a class="pure-button" onclick="set_background()">Set Background</a>
+                <input type="file" id="hidden-background-input" style="display:none" onchange="load_background(this.files[0])">
             </div>
-            <input type="file" id="hidden-background-input" style="display:none" onchange="load_background(this.files[0])">
+            <div class="button-group">
+                <a class="pure-button" onclick="set_projection()">Set Projection</a>
+                <input type="file" id="hidden-projection-input" style="display:none" onchange="load_projection(this.files[0])">
+            </div>
             <div id="color" disabled="1">
                 <span id="color-disabled" class="color-button" onclick="select_color(this)">
                     <div id="color-disabled-text">X</div>
@@ -141,7 +155,8 @@
             </div>
         </div>
     </div>
-    <canvas id="save-canvas" width="1024" height="1024"></canvas>
+    <canvas id="canvas" style="display: none;"></canvas>
+    <img id="hidden-img" style="display: none;">
     <script src="FileSaver.js"></script>
     <script src="canvas-to-blob.js"></script>
     <script src="tinycolor.js"></script>
