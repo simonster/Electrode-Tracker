@@ -1057,6 +1057,23 @@ function update_history_buttons() {
 
 /** SETUP **/
 
+var dialog_callback;
+function confirm_action(name, callback) {
+    var container = document.getElementById("dialog-container");
+    var contents = container.querySelectorAll(".dialog-content");
+    for (var i = 0; i < contents.length; i++) {
+        contents[i].style.display = contents[i].id == "dialog-"+name ? "block" : "none";
+    }
+    container.style.display = "block";
+    dialog_callback = callback;
+}
+
+function dialog_action(status) {
+    document.getElementById("dialog-container").style.display = "none";
+    if(status) dialog_callback();
+    dialog_callback = null;
+}
+
 function save_historical() {
     var d = new Date();
     var datestr = lpad(d.getFullYear(), 4)+"-"+lpad(d.getMonth()+1, 2)+"-"+lpad(d.getDate(), 2);

@@ -20,12 +20,13 @@
             <div id="histpos"></div>
             <div id="pos-rtick-labels" class="tick-labels"></div>
             <div id="projection-container-container">
+                <a class="projection-button pos-button" onclick="move_projection(-1)">⇡</a>
                 <div id="projection-container">
-                    <a class="projection-button pos-button" onclick="move_projection(-1)">⇡</a>
                     <canvas id="projection"></canvas>
                     <div id="projection-line"></div>
-                    <a class="projection-button pos-button" onclick="move_projection(1)">⇣</a>
+                    <div id="curpos" class="curpos"></div>
                 </div>
+                <a class="projection-button pos-button" onclick="move_projection(1)">⇣</a>
             </div>
             <div id="pos-expand-button" class="pos-button" onclick="toggle_expanded_pos()" disabled="1">⇢</div>
         </div>
@@ -117,13 +118,13 @@
             </div>
             <div class="button-group">
                 <a class="pure-button" onclick="load()">Load</a>
-                <a class="pure-button" onclick="reset_history()">Reset</a>
-                <a class="pure-button" onclick="clear_grid()">Clear</a>
+                <a class="pure-button" onclick="confirm_action('reset', reset_history)">Reset</a>
+                <a class="pure-button" onclick="confirm_action('clear', clear_grid)">Clear</a>
                 <input type="file" id="hidden-load-input" style="display:none" onchange="load_file(this.files[0])">
             </div>
             <div class="button-group">
                 <a class="pure-button" onclick="new_grid()">New Grid</a>
-                <a id="delete-grid" class="pure-button" onclick="delete_grid()">Delete Grid</a>
+                <a id="delete-grid" class="pure-button" onclick="confirm_action('delete', delete_grid)">Delete Grid</a>
             </div>
             <form id="rotation-form" class="pure-form pure-form-aligned" onsubmit="return false">
                 <fieldset id="rotation-form-fieldset">
@@ -161,5 +162,39 @@
     <script src="canvas-to-blob.js"></script>
     <script src="tinycolor.js"></script>
     <script src="tracker.js"></script>
+    <div id="dialog-container">
+        <div id="dialog">
+            <div id="dialog-reset" class="dialog-content">
+                <div class="dialog-header">
+                    Are you sure you want to reset this grid?
+                </div>
+                <div class="dialog-text">
+                    Resetting the grid will erase all history.
+                    This action cannot be undone.
+                </div>
+            </div>
+            <div id="dialog-clear" class="dialog-content">
+                <div class="dialog-header">
+                    Are you sure you want to clear this grid?
+                </div>
+                <div class="dialog-text">
+                    Resetting the grid will erase defined electrodes and history.
+                    This action cannot be undone.
+                </div>
+            </div>
+            <div id="dialog-delete" class="dialog-content">
+                <div class="dialog-header">
+                    Are you sure you want to delete this grid?
+                </div>
+                <div class="dialog-text">
+                    This action cannot be undone.
+                </div>
+            </div>
+            <div id="dialog-buttons">
+                <a class="pure-button pure-button-primary" onclick="dialog_action(false)">Cancel</a>
+                <a class="pure-button" onclick="dialog_action(true)">OK</a>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

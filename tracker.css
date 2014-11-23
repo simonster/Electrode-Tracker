@@ -117,16 +117,16 @@ body[expanded-pos] #pos-container-container {
 }
 
 #projection-container-container {
-    position: relative;
-    right: -2em;
-    text-align: right;
     display: none;
+    margin-left: 1.5em;
 }
 
 #projection-container {
     position: relative;
-    margin-left: auto;
-    display: inline-block;
+}
+
+#projection-container > .curpos {
+    background-color: magenta;
 }
 
 #projection {
@@ -142,11 +142,11 @@ body[expanded-pos] #pos-container-container {
 
 #projection-line {
     position: absolute;
-    top: 22px;
-    bottom: 22px;
+    top: 0;
+    bottom: 0;
     left: calc(50% - 1px);
     border: 1px solid magenta;
-    z-index: 10;
+    z-index: 2;
 }
 
 body[expanded-pos] #projection-container-container, body[expanded-pos] #projection {
@@ -156,7 +156,9 @@ body[expanded-pos] #projection-container-container, body[expanded-pos] #projecti
 #pos-expand-button {
     position: absolute;
     top: 0;
-    right: 1.5em;
+    right: 0;
+    -webkit-transform: translateX(-100%);
+    transform: translateX(-100%);
 }
 
 .pos-button {
@@ -523,4 +525,43 @@ a.pure-button {
 
 .pure-form-aligned .pure-control-group label {
     width: 5em;
+}
+
+#dialog-container {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background: rgba(0,0,0,.6);
+    z-index: 3;
+    display: none;
+}
+
+#dialog {
+    position: relative;
+    border: 1px solid black;
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 20% auto auto auto;
+    width: 400px;
+}
+
+.dialog-content {
+    display: none;
+}
+
+.dialog-header {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+.dialog-text {
+    margin-top: 24px;
+}
+
+#dialog-buttons {
+    margin-top: 24px;
+    text-align: right;
 }
