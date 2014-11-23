@@ -1248,7 +1248,7 @@ function select_color(el) {
     if (el.id == "color-disabled") {
         delete grid.electrodes.colors[pair];
         for (var i = 0; i < sel.length; i++) {
-            sel[i].style.backgroundColor = "inherit";
+            sel[i].style.backgroundColor = "#fff";
             sel[i].classList.add("skeleton");
         }
     } else {
