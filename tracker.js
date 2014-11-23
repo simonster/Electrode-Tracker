@@ -460,9 +460,13 @@ var mri_resizer;
 var xcenter;
 const MRI_HEIGHT = MAX_TURNS*MM_PER_TURN*2; // assumes 0.5 mm iso
 function toggle_expanded_pos() {
+    if (get_current_pair() === undefined) return;
+
     var histpos = document.getElementById("histpos");
+    var projcont = document.getElementById("projection-container-container");
     if (document.body.hasAttribute("expanded-pos")) {
         document.body.removeAttribute("expanded-pos");
+        projcont.removeAttribute("has-projection");
         document.getElementById("pos-expand-button").textContent = "\u21e2";
         empty_element(histpos);
         if (!mri_resizer) {
@@ -520,6 +524,7 @@ function toggle_expanded_pos() {
 
         // MRI
         if (pair !== undefined && grid.projection) {
+            projcont.setAttribute("has-projection", "1");
             // x and y coordinates in image to extract
             var x = grid.electrodes.pairs[pair][0];
             var y = grid.electrodes.pairs[pair][1];
@@ -552,6 +557,8 @@ function toggle_expanded_pos() {
                 };
                 window.addEventListener("resize", mri_resizer, false);
             };
+        } else {
+            projcont.removeAttribute("has-projection");
         }
 
         document.body.setAttribute("expanded-pos", "1");

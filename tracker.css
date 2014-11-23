@@ -20,6 +20,7 @@ body[expanded-pos] #pos-container-container {
 
 #pos-container {
     position: relative;
+    height: 100%;
 }
 
 #pos-container-container {
@@ -53,8 +54,8 @@ body[expanded-pos] #pos-container-container {
 }
 
 .posdiv {
+    height: 100%;
     float: left;
-    position: relative;
     width: 16px;
     margin-left: 2px;
     margin-right: 2px;
@@ -149,7 +150,11 @@ body[expanded-pos] #pos-container-container {
     z-index: 2;
 }
 
-body[expanded-pos] #projection-container-container, body[expanded-pos] #projection {
+body[expanded-pos] #projection {
+    display: inline-block;
+}
+
+body[expanded-pos] #projection-container-container[has-projection] {
     display: inline-block;
 }
 
@@ -568,5 +573,5 @@ a.pure-button {
 
 #dialog-error-text {
     font-family: monospace;
-    white-space: pre;
+    white-space: pre-wrap;
 }
