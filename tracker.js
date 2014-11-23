@@ -1,3 +1,44 @@
+/** ERROR HANDLING **/
+
+var dialog_callback;
+function display_dialog(name, buttons_name, callback) {
+    var container = document.getElementById("dialog-container");
+    var contents = document.getElementById("dialog-content").children;
+    for (var i = 0; i < contents.length; i++) {
+        contents[i].style.display = contents[i].id == "dialog-"+name ? "block" : "none";
+    }
+    var buttons = document.getElementById("dialog-buttons").children;
+    for (var i = 0; i < buttons.length; i++) {
+        buttons[i].style.display = buttons[i].id == "dialog-buttons-"+buttons_name ? "block" : "none";
+    }
+    container.style.display = "block";
+    dialog_callback = callback;
+}
+
+function dialog_action(status) {
+    document.getElementById("dialog-container").style.display = "none";
+    var callback = dialog_callback;
+    dialog_callback = null;
+    callback(status);
+}
+
+window.onerror = function(message, file, line, col, error) {
+    var txt = "\""+message+"\" in "+file+"@"+line+":"+col;
+    if (error) {
+        txt += "\n\nBacktrace:\n"+error.stack;
+    }
+    document.getElementById("dialog-error-text").textContent = txt;
+    display_dialog("error", "error", function(action) {
+        if (action == "save") {
+            save();
+        } else if (action == "refresh") {
+            location.reload();
+        }
+    });
+};
+
+/** CONSTANTS **/
+
 const COLORS = ["red", "green", "blue", "yellow", "black"];
 
 const ELECTRODE_STATUS = {
@@ -1057,21 +1098,12 @@ function update_history_buttons() {
 
 /** SETUP **/
 
-var dialog_callback;
 function confirm_action(name, callback) {
-    var container = document.getElementById("dialog-container");
-    var contents = container.querySelectorAll(".dialog-content");
-    for (var i = 0; i < contents.length; i++) {
-        contents[i].style.display = contents[i].id == "dialog-"+name ? "block" : "none";
-    }
-    container.style.display = "block";
-    dialog_callback = callback;
-}
-
-function dialog_action(status) {
-    document.getElementById("dialog-container").style.display = "none";
-    if(status) dialog_callback();
-    dialog_callback = null;
+    display_dialog(name, "confirm", function (status) {
+        if (status) {
+            callback();
+        }
+    });
 }
 
 function save_historical() {
@@ -1324,6 +1356,8 @@ function change_electrode_number(el) {
 
     save_grids();
 }
+
+/** INITIALIZATION **/
 
 document.addEventListener("click", function () {
     var inps = document.querySelectorAll(".electrode > input");

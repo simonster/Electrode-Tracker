@@ -565,3 +565,8 @@ a.pure-button {
     margin-top: 24px;
     text-align: right;
 }
+
+#dialog-error-text {
+    font-family: monospace;
+    white-space: pre;
+}

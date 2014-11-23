@@ -156,45 +156,60 @@
             </div>
         </div>
     </div>
+    <div id="dialog-container">
+        <div id="dialog">
+            <div id="dialog-content">
+                <div id="dialog-reset">
+                    <div class="dialog-header">
+                        Are you sure you want to reset this grid?
+                    </div>
+                    <div class="dialog-text">
+                        Resetting the grid will erase all history.
+                        This action cannot be undone.
+                    </div>
+                </div>
+                <div id="dialog-clear">
+                    <div class="dialog-header">
+                        Are you sure you want to clear this grid?
+                    </div>
+                    <div class="dialog-text">
+                        Resetting the grid will erase defined electrodes and history.
+                        This action cannot be undone.
+                    </div>
+                </div>
+                <div id="dialog-delete">
+                    <div class="dialog-header">
+                        Are you sure you want to delete this grid?
+                    </div>
+                    <div class="dialog-text">
+                        This action cannot be undone.
+                    </div>
+                </div>
+                <div id="dialog-error">
+                    <div class="dialog-header">
+                        An unexpected error occurred.
+                    </div>
+                    <div id="dialog-error-text" class="dialog-text"></div>
+                </div>
+            </div>
+            <div id="dialog-buttons">
+                <div id="dialog-buttons-confirm">
+                    <a class="pure-button pure-button-primary" onclick="dialog_action(false)">Cancel</a>
+                    <a class="pure-button" onclick="dialog_action(true)">OK</a>
+                </div>
+                <div id="dialog-buttons-error">
+                    <a class="pure-button" onclick="dialog_action('save')">Save</a>
+                    <a class="pure-button" onclick="dialog_action('refresh')">Refresh</a>
+                    <a class="pure-button" onclick="dialog_action('continue')">Continue</a>
+                </div>
+            </div>
+        </div>
+    </div>
     <canvas id="canvas" style="display: none;"></canvas>
     <img id="hidden-img" style="display: none;">
     <script src="FileSaver.js"></script>
     <script src="canvas-to-blob.js"></script>
     <script src="tinycolor.js"></script>
     <script src="tracker.js"></script>
-    <div id="dialog-container">
-        <div id="dialog">
-            <div id="dialog-reset" class="dialog-content">
-                <div class="dialog-header">
-                    Are you sure you want to reset this grid?
-                </div>
-                <div class="dialog-text">
-                    Resetting the grid will erase all history.
-                    This action cannot be undone.
-                </div>
-            </div>
-            <div id="dialog-clear" class="dialog-content">
-                <div class="dialog-header">
-                    Are you sure you want to clear this grid?
-                </div>
-                <div class="dialog-text">
-                    Resetting the grid will erase defined electrodes and history.
-                    This action cannot be undone.
-                </div>
-            </div>
-            <div id="dialog-delete" class="dialog-content">
-                <div class="dialog-header">
-                    Are you sure you want to delete this grid?
-                </div>
-                <div class="dialog-text">
-                    This action cannot be undone.
-                </div>
-            </div>
-            <div id="dialog-buttons">
-                <a class="pure-button pure-button-primary" onclick="dialog_action(false)">Cancel</a>
-                <a class="pure-button" onclick="dialog_action(true)">OK</a>
-            </div>
-        </div>
-    </div>
 </body>
 </html>
