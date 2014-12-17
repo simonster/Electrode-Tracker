@@ -1200,7 +1200,7 @@ function grid_name_change(newname) {
     delete histories[oldname];
     histories[newname] = history;
     delete redo_stacks[oldname];
-    redo_stacks[newname] = grid;
+    redo_stacks[newname] = redo_stack;
     save_grids();
     save_history();
 }
