@@ -499,7 +499,7 @@ a.pure-button {
     margin: 0 2px;
     width: 36px;
     height: 36px;
-    border: 1px solid white;
+    border: 1px solid #ccc;
 }
 
 .color-button[selected] {

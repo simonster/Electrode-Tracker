@@ -39,7 +39,7 @@ window.onerror = function(message, file, line, col, error) {
 
 /** CONSTANTS **/
 
-const COLORS = ["red", "green", "blue", "yellow", "black"];
+const COLORS = ["red", "green", "blue", "yellow", "black", "white"];
 
 const ELECTRODE_STATUS = {
     "noisy":{
