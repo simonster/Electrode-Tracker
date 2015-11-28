@@ -555,8 +555,8 @@ function toggle_expanded_pos() {
             var cd = Math.cos(grid.grid.rotation*Math.PI/180);
             var sd = Math.sin(grid.grid.rotation*Math.PI/180);
 
-            var xp = x*cd - y*sd;
-            var yp = x*sd + y*cd;
+            var xp = x*cd + y*sd;
+            var yp = -x*sd + y*cd;
 
             // Image coordinates of center of projection slice
             // Assumes that the png is 41 pseudo-coronal slices,
