@@ -237,6 +237,30 @@ function disambiguate(stem, v) {
     return name;
 }
 
+// Get a short date string
+function date_string() {
+    var d = new Date();
+    return lpad(d.getFullYear(), 4)+"-"+lpad(d.getMonth()+1, 2)+"-"+lpad(d.getDate(), 2);
+}
+
+// Get a short time string
+function time_string() {
+    var t = (new Date());
+    var hr = t.getHours();
+    var ampm = "AM";
+    var timestr;
+    if (hr == 0) {
+        timestr = "12";
+    } else if (hr < 12) {
+        timestr = hr.toString();
+    } else {
+        ampm = "PM";
+        timestr = hr == 12 ? "12" : (hr-12).toString();
+    }
+    timestr += ":"+lpad(t.getMinutes(), 2)+":"+lpad(t.getSeconds(), 2)+" "+ampm;
+    return timestr;
+}
+
 /** DRAWING IN RESPONSE TO EVENTS **/
 
 // Draw screw text based on current position and status
@@ -798,19 +822,8 @@ function save_history() {
 
 // Add an action to the history and update UI
 function do_action(rec) {
-    var t = (new Date());
-    var hr = t.getHours();
-    var ampm = "AM";
-    if (hr == 0) {
-        rec.time = "12";
-    } else if (hr < 12) {
-        rec.time = hr.toString();
-    } else {
-        ampm = "PM";
-        rec.time = hr == 12 ? "12" : (hr-12).toString();
-    }
-    rec.time += ":"+lpad(t.getMinutes(), 2)+":"+lpad(t.getSeconds(), 2)+" "+ampm;
-
+    rec.date = date_string();
+    rec.time = time_string();
     var pair = get_current_pair();
     get_current_redo_stack()[pair] = [];
     var history = get_current_history()[pair];
@@ -1040,7 +1053,7 @@ function redo(event) {
 
 function save() {
     var blob = new Blob([JSON.stringify({"grids":grids, "histories":histories}, false, "\t")], {type:"application/json;charset=utf-8"});
-    saveAs(blob, "tracker.json");
+    saveAs(blob, "tracker "+date_string()+" "+time_string()+".json");
 }
 
 function get_tracker_stylesheet(callback) {
@@ -1114,14 +1127,33 @@ function confirm_action(name, callback) {
 }
 
 function save_historical() {
-    var d = new Date();
-    var datestr = lpad(d.getFullYear(), 4)+"-"+lpad(d.getMonth()+1, 2)+"-"+lpad(d.getDate(), 2);
+    var datestr = "";
+    for (var gridname in histories) {
+        var pair_history = histories[gridname];
+        for (var i=0; i<pair_history.length; i++) {
+            var history = pair_history[i];
+            if (history.length > 0 && history[history.length-1].date > datestr) {
+                datestr = history[history.length-1].date;
+            }
+        }
+    }
+    if (datestr == "") datestr = date_string();
     var historyname = disambiguate(datestr, grids[Object.keys(grids)[0]].histories);
     for (var gridname in grids) {
-        grids[gridname].histories[historyname] = JSON.parse(JSON.stringify(histories[gridname]));
-        grids[gridname].offsets[historyname] = 0;
+        var grid = grids[gridname],
+            pair_history = histories[gridname],
+            redo_stack = redo_stacks[gridname];
+        grid.histories[historyname] = JSON.parse(JSON.stringify(histories[gridname]));
+        grid.offsets[historyname] = 0;
+        for (var i = 0; i < grid.electrodes.pairs.length; i++) {
+            pair_history[i] = [];
+            redo_stack[i] = [];
+        }
     }
-    reset_history();
+    redraw_pair_info();
+    draw_screw_text_all();
+    save_grids();
+    save_history();
 }
 
 function load() {
