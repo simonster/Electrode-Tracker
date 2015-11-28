@@ -1163,8 +1163,9 @@ function load() {
 function load_file(file) {
     var reader = new FileReader();
     reader.onload = function (event) {
-        grids = JSON.parse(event.target.result.grids);
-        histories = JSON.parse(event.target.result.histories);
+        var data = JSON.parse(event.target.result);
+        grids = data.grids;
+        histories = data.histories;
 
         init_redo_stacks();
         init_grids();
