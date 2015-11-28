@@ -901,7 +901,7 @@ function init_electrode_status() {
 // Get status of current electrode pair
 function get_electrode_status(at, hist) {
     if (!hist) hist = get_current_history()[get_current_pair()];
-    for (var i = at ? at : hist.length-1; i >= 0; i--) {
+    for (var i = at !== undefined ? at : hist.length-1; i >= 0; i--) {
         if (hist[i].status) return hist[i].status;
     }
     return "noisy";
