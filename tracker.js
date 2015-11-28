@@ -850,14 +850,14 @@ function update_advance_buttons() {
     for (var i = 0; i < advance_buttons.length; i++) {
         var nturns = advance_buttons[i].getElementsByClassName("electrode-nturns");
         amount = nturns.length ? parseFloat(nturns[0].value) : 1;
-        set_disabled(advance_buttons[i], amount != amount || amount < 1 || position.curpos + amount > MAX_TURNS || !pair);
+        set_disabled(advance_buttons[i], amount != amount || amount <= 0 || position.curpos + amount > MAX_TURNS || !pair);
     }
 
     var retract_buttons = document.querySelectorAll(".retract-button");
     for (var i = 0; i < retract_buttons.length; i++) {
         var nturns = retract_buttons[i].getElementsByClassName("electrode-nturns");
         amount = nturns.length ? parseFloat(nturns[0].value) : 1;
-        set_disabled(retract_buttons[i], amount != amount || amount < 1 || position.curpos - amount < 0 || !pair);
+        set_disabled(retract_buttons[i], amount != amount || amount <= 0 || position.curpos - amount < 0 || !pair);
     }
 }
 
