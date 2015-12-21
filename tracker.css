@@ -575,3 +575,11 @@ a.pure-button {
     font-family: monospace;
     white-space: pre-wrap;
 }
+
+#histpos {
+    max-width: 100px;
+    overflow-x: scroll;
+    display: inline-block;
+    height: 100%;
+    white-space: nowrap;
+}
