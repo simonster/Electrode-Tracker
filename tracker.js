@@ -529,6 +529,7 @@ function toggle_expanded_pos() {
                 pos.draw_action(i, hist);
             }
 
+            (function(pos, histname) {
             upbutton.addEventListener("click", function() {
                 pos.shift(1);
                 grid.offsets[histname] += 1;
@@ -539,6 +540,7 @@ function toggle_expanded_pos() {
                 grid.offsets[histname] -= 1;
                 save_grids();
             }, false);
+            })(pos, histname);
 
             posdiv.appendChild(upbutton);
             posdiv.appendChild(posel);
