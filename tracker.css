@@ -41,6 +41,7 @@ body[expanded-pos] #pos-container-container {
     position: absolute;
     font-size: 0.8em;
     width: 100%;
+    line-height: 1em;
     -webkit-transform: translateY(-0.5em);
     transform: translateY(-0.5em);
 }
@@ -55,10 +56,14 @@ body[expanded-pos] #pos-container-container {
 
 .posdiv {
     height: 100%;
-    float: left;
     width: 16px;
     margin-left: 2px;
     margin-right: 2px;
+    display: inline-block;
+}
+
+#pos-container > div.posdiv {
+    float: left;
 }
 
 .pos {
@@ -578,8 +583,14 @@ a.pure-button {
 
 #histpos {
     max-width: 100px;
+    padding-left: 10px;
     overflow-x: scroll;
+    overflow-y: hidden;
     display: inline-block;
     height: 100%;
     white-space: nowrap;
+}
+
+#histpos::-webkit-scrollbar {
+    display: none;
 }
