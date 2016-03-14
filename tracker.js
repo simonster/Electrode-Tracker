@@ -64,10 +64,6 @@ const ELECTRODE_STATUS = {
     }
 };
 
-const MM_PER_TURN = 25.4/90;
-const MAX_TURNS = 90;
-const TICK_SPACING = 3;
-
 function grid_template() {
     var g1 = {
         "grid":{
@@ -81,7 +77,11 @@ function grid_template() {
             "electrode_offsets":[[-.508, 0], [.508, 0]],
             "electrode_diameter":0.9,
 
-            "rotation":0
+            "rotation":0,
+
+            "mm_per_turn":0.2822222222222222,
+            "max_turns":90,
+            "tick_spacing":3
         },
         "electrodes":{
             "pairs":[
@@ -265,6 +265,7 @@ function time_string() {
 
 // Draw screw text based on current position and status
 function draw_screw_text(pair) {
+    var grid = get_current_grid();
     var position_text = document.querySelector(".screw[pair='"+pair+"'] > .screw-text > .screw-position-text");
     var status_text = document.querySelector(".screw[pair='"+pair+"'] > .screw-text > .screw-status-text");
     var pair_history = get_current_history()[pair];
@@ -276,7 +277,7 @@ function draw_screw_text(pair) {
         if (pair_history[i].nturns) position += pair_history[i].nturns;
         if (pair_history[i].status) status = pair_history[i].status;
     }
-    position_text.textContent = position+" \u27f3\n"+Math.round(MM_PER_TURN*position*10)/10+" mm";
+    position_text.textContent = position+" \u27f3\n"+Math.round(grid.grid.mm_per_turn*position*10)/10+" mm";
     status_text.textContent = ELECTRODE_STATUS[status].shortlabel;
 }
 
@@ -304,6 +305,7 @@ function draw_action(at) {
     var actiontd = document.createElement("td");
     
     timetd.textContent = rec.time;
+    position.draw_action(at, pair_history);
     if (rec.action == "advance") {
         actiontd.textContent = (rec.nturns < 0 ? "Retracted " : "Advanced ") + Math.abs(rec.nturns)+ " turn" + 
                                (Math.abs(rec.nturns) != 1 ? "s" : "");
@@ -313,8 +315,6 @@ function draw_action(at) {
     } else if (rec.action == "note") {
         actiontd.textContent = "Note: "+rec.note;
     }
-
-    position.draw_action(at, pair_history);
 
     tr.appendChild(timetd);
     tr.appendChild(actiontd);
@@ -383,17 +383,20 @@ function redraw_pair_info() {
 
 // Class for a specific position view
 function PositionView(pos) {
-    for (var i = 0; i <= MAX_TURNS-1; i++) {
+    var grid = get_current_grid();
+    var max_turns = grid.grid.max_turns;
+    var tick_spacing = grid.grid.tick_spacing;
+    for (var i = 0; i <= max_turns-1; i++) {
         var turn = document.createElement("div");
         turn.className = "turn turn-"+i;
-        turn.style.top = i/MAX_TURNS*100+"%";
-        turn.style.height = 100/MAX_TURNS+"%";
+        turn.style.top = i/max_turns*100+"%";
+        turn.style.height = 100/max_turns+"%";
         turn.setAttribute("state", "hidden");
         pos.appendChild(turn);
     }
 
-    for (var i = 0; i <= MAX_TURNS; i += TICK_SPACING) {
-        var tickpos = i/MAX_TURNS*100+"%";
+    for (var i = 0; i <= max_turns; i += tick_spacing) {
+        var tickpos = i/max_turns*100+"%";
         ["ltick", "rtick"].map(function (className) {
             var tick = document.createElement("div");
             tick.className = className;
@@ -444,7 +447,8 @@ PositionView.prototype = {
     // Shift display up or down
     "shift":function(nturns) {
         var turns = this.el.querySelectorAll(".turn");
-        var shift = nturns/MAX_TURNS*100;
+        var max_turns = get_current_grid().grid.max_turns;
+        var shift = nturns/max_turns*100;
         for (var i = 0; i < turns.length; i++) {
             var turn = turns[i];
             var oldtop = turn.style.top;
@@ -454,35 +458,45 @@ PositionView.prototype = {
 };
 
 function init_ticks() {
-    for (var i = 0; i <= MAX_TURNS; i += TICK_SPACING) {
-        var tickpos = i/MAX_TURNS*100+"%";
+    var grid = get_current_grid();
+    var lticklabels = document.getElementById("pos-ltick-labels");
+    var rticklabels = document.getElementById("pos-rtick-labels");
+    empty_element(lticklabels);
+    empty_element(rticklabels);
+    for (var i = 0; i <= grid.grid.max_turns; i += grid.grid.tick_spacing) {
+        var tickpos = i/grid.grid.max_turns*100+"%";
 
         var lticklabel = document.createElement("div");
         lticklabel.className = "tick-label";
         lticklabel.style.top = tickpos;
         lticklabel.textContent = i;
-        document.getElementById("pos-ltick-labels").appendChild(lticklabel);
+        lticklabels.appendChild(lticklabel);
 
         var rticklabel = document.createElement("div");
         rticklabel.className = "tick-label";
         rticklabel.style.top = tickpos;
-        rticklabel.textContent = Math.round(i*MM_PER_TURN*10)/10;
-        document.getElementById("pos-rtick-labels").appendChild(rticklabel);
+        rticklabel.textContent = Math.round(i*grid.grid.mm_per_turn*10)/10;
+        rticklabels.appendChild(rticklabel);
     }
 }
 
 // Draw bar at current position on position axes
 function draw_current_position() {
+    var max_turns = get_current_grid().grid.max_turns;
     var poses = document.querySelectorAll(".curpos");
     for (var i = 0; i < poses.length; i++) {
-        poses[i].style.top = position.curpos/MAX_TURNS*100+"%";
+        poses[i].style.top = position.curpos/max_turns*100+"%";
     }
 }
 
 // Handle a click on the expand button
 var mri_resizer;
 var xcenter;
-const MRI_HEIGHT = MAX_TURNS*MM_PER_TURN*2; // assumes 0.5 mm iso
+
+function get_mri_height() {
+    var grid = get_current_grid();
+    return grid.grid.max_turns*grid.grid.mm_per_turn*2; // assumes 0.5 mm iso
+}
 function toggle_expanded_pos() {
     if (get_current_pair() === undefined) return;
 
@@ -569,17 +583,18 @@ function toggle_expanded_pos() {
             img.src = "";
             img.src = grid.projection;
             img.onload = function() {
+                var mri_height = get_mri_height();
                 var canvas = document.getElementById("projection");
                 canvas.width = 41;
-                canvas.height = MRI_HEIGHT;
+                canvas.height = mri_height;
 
                 var ctx = canvas.getContext('2d');
                 var projection_offset = grid.projection_offset || 0;
-                ctx.drawImage(img, xcenter-20, 51+projection_offset, 41, MRI_HEIGHT, 0, 0, 41, MRI_HEIGHT);
+                ctx.drawImage(img, xcenter-20, 51+projection_offset, 41, mri_height, 0, 0, 41, mri_height);
 
-                canvas.style.width = canvas.offsetHeight*canvas.width/MRI_HEIGHT+"px";
+                canvas.style.width = canvas.offsetHeight*canvas.width/mri_height+"px";
                 mri_resizer = function() {
-                    canvas.style.width = canvas.offsetHeight*canvas.width/MRI_HEIGHT+"px";
+                    canvas.style.width = canvas.offsetHeight*canvas.width/mri_height+"px";
                 };
                 window.addEventListener("resize", mri_resizer, false);
             };
@@ -602,7 +617,8 @@ function move_projection(nturns) {
     var canvas = document.getElementById("projection");
     var ctx = canvas.getContext('2d');
     var img = document.getElementById("hidden-img");
-    ctx.drawImage(img, xcenter-20, 51+grid.projection_offset, 41, MRI_HEIGHT, 0, 0, 41, MRI_HEIGHT);
+    var mri_height = get_mri_height();
+    ctx.drawImage(img, xcenter-20, 51+grid.projection_offset, 41, mri_height, 0, 0, 41, mri_height);
 
     save_grids();
 }
@@ -620,6 +636,11 @@ function select_grid(name) {
             }
         }
     }
+    var grid = get_current_grid();
+    if (grid.grid.mm_per_turn === undefined) grid.grid.mm_per_turn = 0.2822222222222222;
+    if (grid.grid.max_turns === undefined) grid.grid.max_turns = 90;
+    if (grid.grid.tick_spacing === undefined) grid.grid.tick_spacing = 3;
+    init_ticks();
     draw_grid();
     update_expand_button();
     update_advance_buttons();
@@ -839,6 +860,7 @@ function do_action(rec) {
 
 // Update state of advance and retract buttons
 function update_advance_buttons() {
+    var max_turns = get_current_grid().grid.max_turns;
     var pair = get_current_pair();
     if (!pair) {
         var butts = document.querySelectorAll(".advance-button, .retract-button, #note, #note-button");
@@ -852,7 +874,7 @@ function update_advance_buttons() {
     for (var i = 0; i < advance_buttons.length; i++) {
         var nturns = advance_buttons[i].getElementsByClassName("electrode-nturns");
         amount = nturns.length ? parseFloat(nturns[0].value) : 1;
-        set_disabled(advance_buttons[i], amount != amount || amount <= 0 || position.curpos + amount > MAX_TURNS || !pair);
+        set_disabled(advance_buttons[i], amount != amount || amount <= 0 || position.curpos + amount > max_turns || !pair);
     }
 
     var retract_buttons = document.querySelectorAll(".retract-button");
@@ -867,10 +889,11 @@ function update_advance_buttons() {
 function advance(nturns) {
     nturns = parseFloat(nturns);
     var pair = get_current_pair();
+    var max_turns = get_current_grid().grid.max_turns;
     if (!pair ||
         nturns != nturns ||
         position.curpos + nturns < 0 ||
-        position.curpos + nturns > MAX_TURNS) return;
+        position.curpos + nturns > max_turns) return;
     do_action({
         "action":"advance",
         "nturns":nturns,
@@ -1411,8 +1434,7 @@ document.addEventListener("click", function () {
 // Not sure why the attribute won't work
 set_disabled(document.getElementById("note"), true);
 init_redo_stacks();
-var position = new PositionView(document.getElementById("pos"));
-init_ticks();
 init_grids();
+var position = new PositionView(document.getElementById("pos"));
 init_electrode_status();
 init_color_buttons();
