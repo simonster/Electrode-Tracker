@@ -126,6 +126,7 @@ function grid_template() {
     };
     return g1;
 }
+var position;
 
 if ("grids" in localStorage) {
     var grids = JSON.parse(localStorage["grids"]);
@@ -484,6 +485,7 @@ function init_ticks() {
 function draw_current_position() {
     var max_turns = get_current_grid().grid.max_turns;
     var poses = document.querySelectorAll(".curpos");
+    console.log(position.curpos)
     for (var i = 0; i < poses.length; i++) {
         poses[i].style.top = position.curpos/max_turns*100+"%";
     }
@@ -640,7 +642,16 @@ function select_grid(name) {
     if (grid.grid.mm_per_turn === undefined) grid.grid.mm_per_turn = 0.2822222222222222;
     if (grid.grid.max_turns === undefined) grid.grid.max_turns = 90;
     if (grid.grid.tick_spacing === undefined) grid.grid.tick_spacing = 3;
+
     init_ticks();
+
+    var pos = document.getElementById("pos");
+    empty_element(pos);
+    var curpos = document.createElement("div");
+    curpos.className = "curpos";
+    pos.appendChild(curpos);
+    position = new PositionView(pos);
+
     draw_grid();
     update_expand_button();
     update_advance_buttons();
@@ -1435,6 +1446,5 @@ document.addEventListener("click", function () {
 set_disabled(document.getElementById("note"), true);
 init_redo_stacks();
 init_grids();
-var position = new PositionView(document.getElementById("pos"));
 init_electrode_status();
 init_color_buttons();
