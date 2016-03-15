@@ -414,7 +414,7 @@ PositionView.prototype = {
     "draw_turn_status":function(pos, status, hit) {
         if (pos < 0) return;
 
-        var turn = this.el.querySelector(".turn-"+pos);
+        var turn = this.el.querySelector(".turn-"+Math.round(pos));
         
         // Don't overwrite explicit information
         if (turn.getAttribute("state") === "hit" && !hit) return;
